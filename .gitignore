@@ -1,0 +1,15 @@
+# Node (Para React y React Native)
+node_modules/
+.env
+
+# Expo (React Native)
+.expo/
+
+# C# / .NET
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+
+# Logs y SO
+*.log
+.DS_Store
