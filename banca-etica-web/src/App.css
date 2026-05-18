@@ -144,7 +144,7 @@ input {
 .mini-button-row,
 .quick-actions,
 .segment-tabs,
-.device-toggle,
+/*.device-toggle,*/
 .preview-tabs,
 .course-list,
 .auth-tabs,
@@ -297,8 +297,8 @@ input {
   max-width: none;
 }
 
-.auth-tabs,
-.device-toggle {
+.auth-tabs
+/*.device-toggle*/ {
   padding: 4px;
   border-radius: 999px;
   background: #f5f0e8;
@@ -306,7 +306,7 @@ input {
 
 .auth-tabs button,
 .ghost-link,
-.device-toggle button,
+/*.device-toggle button,*/
 .segment-tabs button,
 .preview-tabs button,
 .chip-button,
@@ -319,15 +319,29 @@ input {
 }
 
 .auth-tabs button,
-.device-toggle button,
+/*.device-toggle button,*/
 .segment-tabs button,
 .preview-tabs button {
   padding: 10px 14px;
   color: #8a8073;
 }
 
+/* Busca estas líneas en tu App.css y actualízalas: */
+
+.segment-tabs span {
+  border-radius: 999px;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  padding: 10px 14px;
+  color: #8a8073;
+}
+
+.segment-tabs span.active {
+  background: #171717;
+  color: #f7f3ee;
+}
+
 .auth-tabs button.active,
-.device-toggle button.active,
+/*.device-toggle button.active,*/
 .segment-tabs button.active,
 .preview-tabs button.active {
   background: #171717;

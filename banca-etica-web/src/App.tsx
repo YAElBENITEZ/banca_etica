@@ -715,7 +715,7 @@ function App() {
               </header>
 
               <section className="catalog-toolbar">
-                <div className="device-toggle">
+                {/* <div className="device-toggle">
                   {(['Movil', 'Web'] as Surface[]).map((item) => (
                     <button
                       key={item}
@@ -728,20 +728,17 @@ function App() {
                       {item}
                     </button>
                   ))}
-                </div>
+                </div> */}
 
                 <div className="segment-tabs">
                   {(['Todos', 'Finanzas', 'Cobros', 'Prestamos', 'Comunidad', 'Cuenta'] as Category[]).map((item) => (
-                    <button
+                    <span
                       key={item}
                       className={category === item ? 'active' : ''}
-                      onClick={() => {
-                        setCategory(item)
-                        notify(item === 'Todos' ? 'Mostrando todas las categorias.' : `Mostrando ${item}.`)
-                      }}
+                      style={{ cursor: 'default' }}
                     >
                       {item}
-                    </button>
+                    </span>
                   ))}
                 </div>
 
@@ -763,88 +760,67 @@ function App() {
                 </section>
               ) : null}
 
-              <section className="content-grid">
-                <div className="screen-gallery">
-                  {visibleScreens.length > 0 ? (
-                    visibleScreens.map((screen) => (
-                      <button
-                        key={screen.id}
-                        className={`screen-card ${screen.id === activeScreen.id ? 'selected' : ''}`}
-                        onClick={() => selectScreen(screen)}
-                      >
-                        <span className="status-pill">{screen.badge}</span>
-                        <div className="screen-card-body">
-                          <p className="card-kicker">
-                            {screen.category} . {screen.surface}
-                          </p>
-                          <h3>{screen.title}</h3>
-                          <p>{screen.description}</p>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="screen-card empty-state">
-                      <span className="status-pill">Sin resultados</span>
-                      <div className="screen-card-body">
-                        <h3>No encontramos pantallas con ese filtro</h3>
-                        <p>Prueba con otra palabra o cambia de categoria.</p>
+              {/* Eliminamos el wrapper "content-grid" y la sección "screen-gallery" completa */}
+              <section className="preview-panel">
+                {activeScreen ? (
+                  <>
+                    <div className="preview-header">
+                      <div>
+                        <p className="hero-label">Pantalla activa</p>
+                        <h2>{activeScreen.title}</h2>
+                        <span>{activeScreen.description}</span>
+                      </div>
+                      <div className="preview-actions">
+                        <button className="secondary-button" onClick={() => notify(`Recorrido de ${activeScreen.title} abierto.`)}>
+                          Ver recorrido
+                        </button>
+                        <button className="primary-button" onClick={() => notify(`Detalle de ${activeScreen.title} listo.`)}>
+                          Abrir detalle
+                        </button>
                       </div>
                     </div>
-                  )}
-                </div>
-
-                <section className="preview-panel">
-                  <div className="preview-header">
-                    <div>
-                      <p className="hero-label">Pantalla activa</p>
-                      <h2>{activeScreen.title}</h2>
-                      <span>{activeScreen.description}</span>
+                
+                    <div className="preview-tabs">
+                      {activeScreen.tabs?.map((tab) => (
+                        <button
+                          key={tab}
+                          className={activeTabs && activeTabs[activeScreen.id] === tab ? 'active' : ''}
+                          onClick={() => {
+                            setActiveTabs((current) => ({ ...current, [activeScreen.id]: tab }))
+                            notify(`Seccion activa: ${tab}.`)
+                          }}
+                        >
+                          {tab}
+                        </button>
+                      ))}
                     </div>
-                    <div className="preview-actions">
-                      <button className="secondary-button" onClick={() => notify(`Recorrido de ${activeScreen.title} abierto.`)}>
-                        Ver recorrido
-                      </button>
-                      <button className="primary-button" onClick={() => notify(`Detalle de ${activeScreen.title} listo.`)}>
-                        Abrir detalle
-                      </button>
+                    
+                    <div className="metrics-row">
+                      {activeScreen.metrics?.map((metric) => (
+                        <button key={metric.label} className="metric-card" onClick={() => notify(metric.label)}>
+                          <span>{metric.label}</span>
+                          <strong>{metric.value}</strong>
+                          <small>{metric.hint}</small>
+                        </button>
+                      ))}
                     </div>
+                    
+                    <ScreenView
+                      screenId={activeScreen.id}
+                      selectedTab={activeTabs ? activeTabs[activeScreen.id] : ''}
+                      onAction={handleAction}
+                      channels={channels}
+                      securityOptions={securityOptions}
+                      onToggleChannel={toggleChannel}
+                      onToggleSecurity={toggleSecurity}
+                    />
+                  </>
+                ) : (
+                  <div className="panel">
+                    <p className="panel-title">Ninguna pantalla seleccionada</p>
+                    <span>Utiliza la navegación para seleccionar una vista.</span>
                   </div>
-
-                  <div className="preview-tabs">
-                    {activeScreen.tabs.map((tab) => (
-                      <button
-                        key={tab}
-                        className={activeTabs[activeScreen.id] === tab ? 'active' : ''}
-                        onClick={() => {
-                          setActiveTabs((current) => ({ ...current, [activeScreen.id]: tab }))
-                          notify(`Seccion activa: ${tab}.`)
-                        }}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="metrics-row">
-                    {activeScreen.metrics.map((metric) => (
-                      <button key={metric.label} className="metric-card" onClick={() => notify(metric.label)}>
-                        <span>{metric.label}</span>
-                        <strong>{metric.value}</strong>
-                        <small>{metric.hint}</small>
-                      </button>
-                    ))}
-                  </div>
-
-                  <ScreenView
-                    screenId={activeScreen.id}
-                    selectedTab={activeTabs[activeScreen.id]}
-                    onAction={handleAction}
-                    channels={channels}
-                    securityOptions={securityOptions}
-                    onToggleChannel={toggleChannel}
-                    onToggleSecurity={toggleSecurity}
-                  />
-                </section>
+                )}
               </section>
             </main>
           </div>
