@@ -467,7 +467,7 @@ function App() {
                 <div className="landing-copy">
                   <span className="soft-badge">Banca simple para trabajo comunitario</span>
                   <h1>Administra ahorro, cobros y prestamos desde una sola experiencia.</h1>
-                  <p>
+                  <p className="landing-description">
                     MezcalPay organiza la operacion diaria de tu comunidad financiera con
                     pantallas claras para socios, tesoreria y seguimiento de pagos.
                   </p>
@@ -525,13 +525,13 @@ function App() {
               <div className="auth-layout">
                 <div className="auth-copy">
                   <span className="soft-badge">Acceso protegido</span>
-                  <h2>
+                  <h2 className="auth-title">
                     {authView === 'login' && 'Ingresa a tu cuenta'}
                     {authView === 'register' && 'Crea tu cuenta'}
                     {authView === 'recovery' && 'Recupera tu acceso'}
                     {authView === 'verify' && 'Verifica tu identidad'}
                   </h2>
-                  <p>
+                  <p className="auth-description">
                     Usa este flujo como base para conectar el acceso real cuando el backend
                     este listo.
                   </p>

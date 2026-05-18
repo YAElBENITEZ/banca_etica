@@ -49,6 +49,8 @@ input {
 .course-card,
 .saving-card,
 .field-card,
+.landing-description,
+.auth-description,
 .option-card {
   border-radius: 30px;
   background: rgba(255, 255, 255, 0.82);
@@ -56,6 +58,27 @@ input {
   border: 1px solid rgba(25, 25, 25, 0.06);
   box-shadow: 0 30px 70px rgba(69, 55, 32, 0.08);
 }
+
+.landing-description,
+.auth-description {
+  border-radius: 15px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-left: 12px;
+  color: #5b544b;
+  font-size: 1.04rem;
+  max-width: 650px;
+}
+
+.auth-title {
+  background: rgba(255, 255, 255, 0.82);
+  color: #ffffff;
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  max-width: 400px;
+} 
 
 .landing-panel,
 .main-shell {
@@ -65,6 +88,7 @@ input {
 .landing-panel {
   display: grid;
   gap: 28px;
+  background: url('./assets/Tequila-Jalisco.jpg') center/cover no-repeat;
 }
 
 .landing-topbar,
