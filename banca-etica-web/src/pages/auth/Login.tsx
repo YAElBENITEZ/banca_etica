@@ -2,6 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../../App.css'; 
 
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+  const raw = await response.text();
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { mensaje: raw };
+    }
+  }
+
+  return { mensaje: raw };
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +50,7 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         // Si el backend responde con Unauthorized (401)

@@ -5,6 +5,21 @@ import ModalNuevaCaja from '../components/ModalNuevaCaja';
 import ModalNuevoMovimiento from '../components/ModalNuevoMovimiento';
 import '../App.css'; 
 
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+  const raw = await response.text();
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { mensaje: raw };
+    }
+  }
+
+  return { mensaje: raw };
+}
+
 export default function Cajitas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -21,7 +36,7 @@ export default function Cajitas() {
       if (!response.ok) {
         throw new Error('Error al cargar las cajas');
       }
-      const data = await response.json();
+      const data = await readApiResponse(response);
       
       // 4. Metemos los datos que llegaron de C# en nuestro estado de React
       setCajitas(data);
