@@ -203,6 +203,10 @@ namespace banca_etica_api.Migrations
                     b.Property<decimal>("TasaInteresAplicada")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("TipoInteres")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CajitaId");

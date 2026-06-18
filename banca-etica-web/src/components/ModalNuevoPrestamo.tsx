@@ -1,78 +1,116 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import '../App.css';
 
 interface ModalMovimientoProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void; // Función para avisarle a Cajitas.tsx que recargue los saldos
+  onSuccess: () => void; 
 }
 
 export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: ModalMovimientoProps) {
   const [nombre, setNombre] = useState('');
+  const [cajita, setCajita] = useState('');
   const [montoAprobado, setMontoAprobado] = useState('');
   const [tasaInteres, setTasaInteres] = useState('');
   const [plazoMeses, setPlazoMeses] = useState('');
-  const [estado, setEstado] = useState('');
-  const [fechaDesembolso, setFechaDesembolso] = useState(null);
+  const [tipoInteres, setTipoInteres] = useState('');
+  const [estado, setEstado] = useState('En Revisión'); // Mejor mandar el texto bonito
+  const [fechaDesembolso, setFechaDesembolso] = useState<Date | null>(null);
+
+  // NUEVO: Estado para guardar las cajitas que vienen de la base de datos
+  const [cajitasDisponibles, setCajitasDisponibles] = useState<any[]>([]);
+
+  // NUEVO: useEffect para jalar las cajitas en cuanto se abra el modal
+  useEffect(() => {
+    if (isOpen) {
+      const fetchCajitas = async () => {
+        try {
+          const res = await fetch('http://localhost:5026/api/cajita');
+          const data = await res.json();
+          setCajitasDisponibles(data);
+          
+          // Si el usuario tiene cajitas, seleccionamos la primera por defecto
+          if (data.length > 0) {
+            setCajita(data[0].id);
+          }
+        } catch (error) {
+          console.error("Error al cargar cajitas:", error);
+        }
+      };
+      fetchCajitas();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    /*try {
-      // 1. Hacemos la petición POST a la ruta de tu nuevo controlador independiente
-      const response = await fetch('http://localhost:5026/api/historialcuadernillo', {
+    // Validamos que haya elegido una fecha
+    if (!fechaDesembolso) {
+      alert("Por favor selecciona una fecha de desembolso.");
+      return;
+    }
+
+    try {
+      // 1. Hacemos la petición POST a tu nuevo controlador
+      const response = await fetch('http://localhost:5026/api/prestamo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          TipoMovimiento: tipoMovimiento, // "Abono" o "Retiro"
-          Monto: parseFloat(monto),       // Convertimos el string del input a número decimal para C#
-          FirmaTesorero: firmaTesorero,   // El PIN de 4 números purificado que guardamos en el estado
-          CajitaId: cajitaId              // El ID de la cajita que recibimos por props desde la tarjeta
+          Nombre: nombre,
+          MontoAprobado: parseFloat(montoAprobado),
+          TasaInteresAplicada: parseFloat(tasaInteres),
+          PlazoMeses: parseInt(plazoMeses),
+          Estado: estado,
+          TipoInteres: tipoInteres,
+          // Convertimos la fecha a formato universal (ISO) para C#
+          FechaDesembolso: fechaDesembolso.toISOString(), 
+          CajitaId: cajita // Aquí va el ID real (Guid) de la base de datos
         }),
       });
 
       const data = await response.json();
 
-      // 2. Si el backend arroja un error (ej. Status 400 de Fondos Insuficientes o datos inválidos)
       if (!response.ok) {
-        throw new Error(data.mensaje || 'Error al procesar la transacción');
-      }*/
+        throw new Error(data.mensaje || 'Error al procesar el préstamo');
+      }
 
-      // 3. Si todo sale bien, notificamos al usuario
-      alert(`¡Prestamo Simulado!`);
+      alert(`¡Préstamo registrado exitosamente!`);
       
-      // 4. Limpiamos los campos sensibles del formulario
+      // Limpiamos
+      setNombre('');
       setMontoAprobado('');
       setTasaInteres('');
+      setPlazoMeses('');
+      setTipoInteres('');
+      setFechaDesembolso(null);
       
-      // 5. ¡La magia de React! 
-      onSuccess(); // Ejecuta fetchCajitas() en el padre para traer los saldos nuevos de PostgreSQL
-      onClose();   // Cerramos el modal flotante
+      onSuccess(); 
+      onClose();   
 
-    /*} catch (error: any) {
-      // Atrapamos errores de red (Failed to fetch) o los mensajes de BadRequest de C#
+    } catch (error: any) {
       alert("Hubo un error: " + error.message);
-    }*/
+    }
   };
 
   return (
     <div className="modal-backdrop"> 
       <div className="modal-card">
         <h3>Nuevo Préstamo</h3>
-        <p>Estas registrando un nuevo préstamo</p>
+        <p>Estás registrando un nuevo crédito para un productor.</p>
         
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px', marginTop: '16px' }}>
           
           <label className="field-card">
-            <span>Nombre del Préstamo</span>
+            <span>Nombre / Propósito del Préstamo</span>
             <input 
               type="text" 
-              placeholder="Ej. Préstamo Compra Camión" 
+              placeholder="Ej. Compra Semilla de Agave" 
               value={nombre} 
               onChange={(e) => setNombre(e.target.value)}
               required 
@@ -80,69 +118,103 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
           </label>
 
           <label className="field-card">
-            <span>Monto ($ MXN)</span>
-            <input 
-              type="number" 
-              placeholder="Ej. 500" 
-              value={montoAprobado} 
-              onChange={(e) => setMontoAprobado(e.target.value)}
-              required 
-              min="1"
-            />
-          </label>
-
-          <label className="field-card">
-            <span>Tasa de Interes Mensual Aplicada (%)</span>
-            <input 
-              type="number" 
-              placeholder="Ej. 10%" 
-              value={tasaInteres} 
-              onChange={(e) => setTasaInteres(e.target.value)}
-              required 
-              min="1"
-            />
-          </label>
-
-          <label className="field-card">
-            <span>Plazo Meses</span>
-            <input 
-              type="number" 
-              placeholder="Ej. 5" 
-              value={plazoMeses} 
-              onChange={(e) => setPlazoMeses(e.target.value)}
-              required 
-              min="1"
-            />
-          </label>
-
-          <label className="field-card">
-            <span>Estado</span>
+            <span>¿De qué Caja de Ahorro sale el dinero?</span>
             <select  
-              value={estado} 
-              onChange={(e) => setEstado(e.target.value)}
+              value={cajita} 
+              onChange={(e) => setCajita(e.target.value)}
               required
-             
             >
-                <option value="revision">En Revisión</option>
-                <option value="aprobado">Aprobado</option>
-                <option value="liquidado">Liquidado</option>
+              {/* Iteramos dinámicamente sobre las cajas del usuario */}
+              {cajitasDisponibles.map((caja) => (
+                <option key={caja.id} value={caja.id}>
+                  {caja.nombre} (Meta: ${caja.meta})
+                </option>
+              ))}
             </select>
           </label>
 
-          <label className="field-card">Ingresa Fecha Desembolso: 
-            <DatePicker 
-              selected={fechaDesembolso} 
-              onChange={(e) => setFechaDesembolso(e.target.value)}
-              dateFormat="dd/MM/yyyy" // Formato personalizado
-              placeholderText="Haz clic para elegir..."
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <label className="field-card">
+              <span>Monto ($ MXN)</span>
+              <input 
+                type="number" 
+                placeholder="Ej. 15000" 
+                value={montoAprobado} 
+                onChange={(e) => setMontoAprobado(e.target.value)}
+                required min="1"
+              />
             </label>
+
+            <label className="field-card">
+              <span>Tasa Mensual (%)</span>
+              <input 
+                type="number" 
+                placeholder="Ej. 1.5" 
+                value={tasaInteres} 
+                onChange={(e) => setTasaInteres(e.target.value)}
+                required min="0" step="0.1" // Permite decimales
+              />
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <label className="field-card">
+              <span>Plazo (Meses)</span>
+              <input 
+                type="number" 
+                placeholder="Ej. 12" 
+                value={plazoMeses} 
+                onChange={(e) => setPlazoMeses(e.target.value)}
+                required min="1"
+              />
+            </label>
+
+            <label className="field-card">
+              <span>Estado</span>
+              <select  
+                value={estado} 
+                onChange={(e) => setEstado(e.target.value)}
+                required
+              >
+                  <option value="En Revisión">En Revisión</option>
+                  <option value="Aprobado">Aprobado</option>
+                  <option value="Liquidado">Liquidado</option>
+              </select>
+            </label>
+
+            <label className="field-card">
+              <span>Tipo de Interes</span>
+              <select  
+                value={tipoInteres} 
+                onChange={(e) => setTipoInteres(e.target.value)}
+                required
+              >
+                  <option value="saldosInsolutos">Sobre Saldos Insolutos</option>
+                  <option value="compuesto">Compuesto</option>
+              </select>
+            </label>
+          </div>
+
+          <label className="field-card" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span>Fecha de Desembolso Estimada</span>
+            <div style={{ width: '100%', marginTop: '4px' }}>
+              <DatePicker 
+                selected={fechaDesembolso} 
+                onChange={(date: Date | null) => setFechaDesembolso(date)} 
+                dateFormat="dd/MM/yyyy" 
+                placeholderText="Selecciona una fecha..."
+                className="custom-datepicker"
+                wrapperClassName="date-picker-wrapper"
+              />
+            </div>
+          </label>
+
           <div className="modal-actions">
             <button type="button" className="secondary-button" onClick={onClose}>
               Cancelar
             </button>
             <button type="submit" className="primary-button">
-              Confirmar
+              Confirmar Crédito
             </button>
           </div>
 

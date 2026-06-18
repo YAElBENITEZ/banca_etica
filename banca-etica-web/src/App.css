@@ -841,7 +841,7 @@ input {
 }
 
 .modal-card {
-  width: min(100%, 440px);
+  width: min(100%, 540px);
   border-radius: 28px;
   background: #fffdf9;
   padding: 22px;
@@ -929,4 +929,25 @@ input {
     right: 12px;
     bottom: 12px;
   }
+}
+/* Obliga al contenedor del DatePicker a tomar todo el ancho de la tarjeta */
+.date-picker-wrapper {
+  width: 100%;
+}
+
+/* Le da el mismo diseño al input del calendario que a los demás */
+.custom-datepicker {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  font-size: 14px;
+  color: #171717;
+  box-sizing: border-box;
+}
+
+.custom-datepicker:focus {
+  outline: none;
+  border-color: #5f584f;
 }

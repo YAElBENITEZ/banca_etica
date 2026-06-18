@@ -37,11 +37,16 @@ namespace banca_etica_api.Controllers
             var nuevoPrestamo = new Prestamo
             {
                 Id = Guid.NewGuid(),
-                //CajitaId = , 
                 Nombre = request.Nombre,
                 MontoAprobado = request.MontoAprobado, 
                 PlazoMeses = request.PlazoMeses,
-                Estado = request.Estado, 
+                Estado = request.Estado,
+                TasaInteresAplicada = request.TasaInteresAplicada, // ¡Agregamos la tasa!
+                TipoInteres = request.TipoInteres,
+                // ¡Magia anti-PostgreSQL! Aseguramos que la fecha se guarde en UTC Universal
+                FechaDesembolso = request.FechaDesembolso.UtcDateTime, 
+                
+                CajitaId = request.CajitaId
             };
         
             // 4. Guardamos AMBAS cosas: El nuevo recibo y el nuevo saldo de la cajita
@@ -52,6 +57,30 @@ namespace banca_etica_api.Controllers
             { 
                 mensaje = "Transacción creada exitosamente",
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerPrestamos()
+        {
+            // Hacemos una "proyección". Le decimos a SQL exactamente qué columnas queremos.
+            var prestamos = await _context.Prestamos
+                .Select(p => new 
+                {
+                    id = p.Id,
+                    proposito = p.Nombre,
+                    montoOriginal = p.MontoAprobado,
+                    tasa = p.TasaInteresAplicada,
+                    plazoMeses = p.PlazoMeses, 
+                    tipoInteres = p.TipoInteres,
+                    estado = p.Estado,
+                    fechaDesembolso = p.FechaDesembolso,
+                    
+                    // ¡LA MAGIA! Navegamos hacia la Cajita y sacamos solo su nombre
+                    cajitaNombre = p.Cajita.Nombre 
+                })
+                .ToListAsync();
+
+            return Ok(prestamos);
         }
     }
 }
