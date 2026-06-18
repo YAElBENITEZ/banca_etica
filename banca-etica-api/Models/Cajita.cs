@@ -12,6 +12,8 @@ namespace banca_etica_api.Models
         public Guid UsuarioId { get; set; }
 
         // 3. Atributos de Valor (Tipos de datos financieros)
+        public string Nombre { get; set; }
+        public decimal Meta { get; set; }
         public decimal SaldoActual { get; set; }
         public decimal PorcentajeAportacionFondo { get; set; }
         

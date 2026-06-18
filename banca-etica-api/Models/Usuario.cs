@@ -12,9 +12,12 @@ namespace banca_etica_api.Models
         public string NombreCompleto { get; set; }
         public string Telefono { get; set; }
         public string Correo { get; set; } 
+        public string PasswordHash { get; set; }
         
         // Seguridad y Gobernanza
-        public string Rol { get; set; } // "Socio", "Tesorero", "Consejo", "Admin"
+        // Seguridad y Gobernanza (¡Ajustado!)
+        public Guid RolId { get; set; } // Esta es la llave foránea física en la base de datos
+        public virtual Rol Rol { get; set; } // Propiedad de navegación para acceder a los datos del rol
         public string EstatusMembresia { get; set; } // "Activo", "Suspendido", "Baja Voluntaria"
         
         // Configuraciones y Legales
@@ -24,7 +27,7 @@ namespace banca_etica_api.Models
 
         // Relaciones (Navigation Properties para EF Core)
         // 1 a 1: Un usuario tiene exactamente una cajita y un progreso educativo
-        public Cajita Cajita { get; set; }
+        public ICollection<Cajita> Cajitas { get; set; }
         public ProgresoEducacion ProgresoEducativo { get; set; }
 
         // 1 a N: Un usuario puede tener muchos lotes y transacciones

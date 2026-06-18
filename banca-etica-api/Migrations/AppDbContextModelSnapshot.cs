@@ -17,7 +17,7 @@ namespace banca_etica_api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.26")
+                .HasAnnotation("ProductVersion", "8.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -32,22 +32,28 @@ namespace banca_etica_api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("Meta")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<decimal>("PorcentajeAportacionFondo")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("Proyeccion612Meses")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("SaldoActual")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId")
-                        .IsUnique();
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Cajitas");
                 });
@@ -71,13 +77,13 @@ namespace banca_etica_api.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("ProyeccionFondo")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("ReglamentoUnionId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("SaldoColectivo")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime>("UltimaActualizacion")
                         .HasColumnType("timestamp with time zone");
@@ -111,10 +117,10 @@ namespace banca_etica_api.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("SaldoAcumulado")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime>("TimestampAuditoria")
                         .HasColumnType("timestamp with time zone");
@@ -174,10 +180,6 @@ namespace banca_etica_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AvalistasJson")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<Guid>("CajitaId")
                         .HasColumnType("uuid");
 
@@ -185,27 +187,42 @@ namespace banca_etica_api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("FechaDesembolso")
+                    b.Property<DateTimeOffset>("FechaDesembolso")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("MontoAprobado")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("PlazoMeses")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TablaPagosJson")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("TasaInteresAplicada")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CajitaId");
 
                     b.ToTable("Prestamos");
+                });
+
+            modelBuilder.Entity("banca_etica_api.Models.PrestamoAvalista", b =>
+                {
+                    b.Property<Guid>("PrestamoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AvalistaUsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PrestamoId", "AvalistaUsuarioId");
+
+                    b.HasIndex("AvalistaUsuarioId");
+
+                    b.ToTable("PrestamoAvalistas");
                 });
 
             modelBuilder.Entity("banca_etica_api.Models.ProgresoEducacion", b =>
@@ -253,17 +270,17 @@ namespace banca_etica_api.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("MontoMinimoAportacion")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("MultiploPrestamoMaximo")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("PeriodicidadAhorro")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("TasaInteresMensual")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("TesoreroId")
                         .HasColumnType("uuid");
@@ -273,6 +290,51 @@ namespace banca_etica_api.Migrations
                     b.HasIndex("TesoreroId");
 
                     b.ToTable("Reglamentos");
+                });
+
+            modelBuilder.Entity("banca_etica_api.Models.Rol", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Descripcion = "Administrador total del sistema",
+                            Nombre = "Admin"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Descripcion = "Productor artesanal / agricultor",
+                            Nombre = "Socio"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Descripcion = "Encargado de gestionar la caja comunal",
+                            Nombre = "Tesorero"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Descripcion = "Miembro del comité de administración o vigilancia",
+                            Nombre = "Consejo"
+                        });
                 });
 
             modelBuilder.Entity("banca_etica_api.Models.Sincronizacion", b =>
@@ -310,6 +372,41 @@ namespace banca_etica_api.Migrations
                     b.ToTable("ColaSincronizacion");
                 });
 
+            modelBuilder.Entity("banca_etica_api.Models.TablaPagosPrestamo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("FechaVencimiento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("MontoInteres")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("MontoPagado")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("MontoPrincipal")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("NumeroParcialidad")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PrestamoId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrestamoId");
+
+                    b.ToTable("TablaPagosPrestamos");
+                });
+
             modelBuilder.Entity("banca_etica_api.Models.Transaccion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -343,7 +440,7 @@ namespace banca_etica_api.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -385,18 +482,23 @@ namespace banca_etica_api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Rol")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid>("RolId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Telefono")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("UmbralAlertaSaldo")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RolId");
 
                     b.ToTable("Usuarios");
                 });
@@ -404,8 +506,8 @@ namespace banca_etica_api.Migrations
             modelBuilder.Entity("banca_etica_api.Models.Cajita", b =>
                 {
                     b.HasOne("banca_etica_api.Models.Usuario", "Usuario")
-                        .WithOne("Cajita")
-                        .HasForeignKey("banca_etica_api.Models.Cajita", "UsuarioId")
+                        .WithMany("Cajitas")
+                        .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -456,6 +558,25 @@ namespace banca_etica_api.Migrations
                     b.Navigation("Cajita");
                 });
 
+            modelBuilder.Entity("banca_etica_api.Models.PrestamoAvalista", b =>
+                {
+                    b.HasOne("banca_etica_api.Models.Usuario", "AvalistaUsuario")
+                        .WithMany()
+                        .HasForeignKey("AvalistaUsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("banca_etica_api.Models.Prestamo", "Prestamo")
+                        .WithMany("Avalistas")
+                        .HasForeignKey("PrestamoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AvalistaUsuario");
+
+                    b.Navigation("Prestamo");
+                });
+
             modelBuilder.Entity("banca_etica_api.Models.ProgresoEducacion", b =>
                 {
                     b.HasOne("banca_etica_api.Models.Usuario", "Usuario")
@@ -489,6 +610,17 @@ namespace banca_etica_api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("banca_etica_api.Models.TablaPagosPrestamo", b =>
+                {
+                    b.HasOne("banca_etica_api.Models.Prestamo", "Prestamo")
+                        .WithMany("Pagos")
+                        .HasForeignKey("PrestamoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Prestamo");
+                });
+
             modelBuilder.Entity("banca_etica_api.Models.Transaccion", b =>
                 {
                     b.HasOne("banca_etica_api.Models.LoteProduccion", "LoteProduccion")
@@ -506,11 +638,29 @@ namespace banca_etica_api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("banca_etica_api.Models.Usuario", b =>
+                {
+                    b.HasOne("banca_etica_api.Models.Rol", "Rol")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+                });
+
             modelBuilder.Entity("banca_etica_api.Models.Cajita", b =>
                 {
                     b.Navigation("Historial");
 
                     b.Navigation("Prestamos");
+                });
+
+            modelBuilder.Entity("banca_etica_api.Models.Prestamo", b =>
+                {
+                    b.Navigation("Avalistas");
+
+                    b.Navigation("Pagos");
                 });
 
             modelBuilder.Entity("banca_etica_api.Models.ReglamentoUnion", b =>
@@ -519,10 +669,14 @@ namespace banca_etica_api.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("banca_etica_api.Models.Rol", b =>
+                {
+                    b.Navigation("Usuarios");
+                });
+
             modelBuilder.Entity("banca_etica_api.Models.Usuario", b =>
                 {
-                    b.Navigation("Cajita")
-                        .IsRequired();
+                    b.Navigation("Cajitas");
 
                     b.Navigation("Lotes");
 

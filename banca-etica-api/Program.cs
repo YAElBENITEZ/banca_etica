@@ -14,7 +14,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 1. Agrega esto ANTES de builder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // El puerto de tu frontend
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+// 2. Agrega esto DESPUÉS de app.UseRouting() o app.UseHttpsRedirection();
+app.UseCors("PermitirReact");
 
 // 4. Configuración del Pipeline de HTTP
 if (app.Environment.IsDevelopment())

@@ -445,16 +445,20 @@ input {
   gap: 8px;
 }
 
-.sidebar-nav button {
+.sidebar-nav button, 
+.sidebar-nav a {
   text-align: left;
   padding: 12px 14px;
   border-radius: 999px;
   color: #5f584f;
   transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  text-decoration: none;
 }
 
 .sidebar-nav button.active,
-.sidebar-nav button:hover {
+.sidebar-nav button:hover,
+.sidebar-nav a.active,
+.sidebar-nav a:hover {
   background: #171717;
   color: #f8f5ef;
   transform: translateX(2px);
