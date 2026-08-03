@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
+import { apiFetch } from '../services/api'; // <-- 1. Importamos apiFetch
 import 'react-datepicker/dist/react-datepicker.css';
 import '../App.css';
 
@@ -7,36 +8,40 @@ interface ModalMovimientoProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void; 
+  targetUserId?: string;
 }
 
-export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: ModalMovimientoProps) {
+export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetUserId }: ModalMovimientoProps) {
   const [nombre, setNombre] = useState('');
   const [cajita, setCajita] = useState('');
   const [montoAprobado, setMontoAprobado] = useState('');
   const [tasaInteres, setTasaInteres] = useState('');
   const [plazoMeses, setPlazoMeses] = useState('');
-  const [tipoInteres, setTipoInteres] = useState('');
-  const [estado, setEstado] = useState('En Revisión'); // Mejor mandar el texto bonito
+  const [tipoInteres, setTipoInteres] = useState('saldosInsolutos');
+  const [estado, setEstado] = useState('En Revisión');
   const [fechaDesembolso, setFechaDesembolso] = useState<Date | null>(null);
 
-  // NUEVO: Estado para guardar las cajitas que vienen de la base de datos
   const [cajitasDisponibles, setCajitasDisponibles] = useState<any[]>([]);
 
-  // NUEVO: useEffect para jalar las cajitas en cuanto se abra el modal
+  // 1. Cargamos las cajitas con apiFetch y validamos si res.ok es true
   useEffect(() => {
     if (isOpen) {
       const fetchCajitas = async () => {
         try {
-          const res = await fetch('http://localhost:5026/api/cajita');
+          const res = await apiFetch('http://localhost:5026/api/cajita');
+          
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: No se pudieron cargar las cajitas`);
+          }
+
           const data = await res.json();
           setCajitasDisponibles(data);
           
-          // Si el usuario tiene cajitas, seleccionamos la primera por defecto
           if (data.length > 0) {
             setCajita(data[0].id);
           }
-        } catch (error) {
-          console.error("Error al cargar cajitas:", error);
+        } catch (error: any) {
+          console.error("Error al cargar cajitas:", error.message);
         }
       };
       fetchCajitas();
@@ -45,32 +50,39 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
 
   if (!isOpen) return null;
 
+  // 2. Procesamos la creación del préstamo con apiFetch (que adjunta el JWT)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validamos que haya elegido una fecha
     if (!fechaDesembolso) {
       alert("Por favor selecciona una fecha de desembolso.");
       return;
     }
 
     try {
-      // 1. Hacemos la petición POST a tu nuevo controlador
-      const response = await fetch('http://localhost:5026/api/prestamo', {
+      const usuarioStored = localStorage.getItem('usuario');
+      const usuario = usuarioStored ? JSON.parse(usuarioStored) : null;
+      
+      const activeUserId = targetUserId || usuario?.id;
+
+      if (!activeUserId) {
+        throw new Error('No se identificó el usuario para asociar el préstamo.');
+      }
+
+      // 🔑 AQUÍ ESTABA EL DETALLE: Cambiamos fetch por apiFetch
+      const response = await apiFetch('http://localhost:5026/api/prestamo', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           Nombre: nombre,
+          UsuarioId: activeUserId,
           MontoAprobado: parseFloat(montoAprobado),
           TasaInteresAplicada: parseFloat(tasaInteres),
           PlazoMeses: parseInt(plazoMeses),
           Estado: estado,
           TipoInteres: tipoInteres,
-          // Convertimos la fecha a formato universal (ISO) para C#
+          EsColectivo: false,
           FechaDesembolso: fechaDesembolso.toISOString(), 
-          CajitaId: cajita // Aquí va el ID real (Guid) de la base de datos
+          CajitaId: cajita
         }),
       });
 
@@ -82,12 +94,12 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
 
       alert(`¡Préstamo registrado exitosamente!`);
       
-      // Limpiamos
+      // Limpiar estados
       setNombre('');
       setMontoAprobado('');
       setTasaInteres('');
       setPlazoMeses('');
-      setTipoInteres('');
+      setTipoInteres('saldosInsolutos');
       setFechaDesembolso(null);
       
       onSuccess(); 
@@ -124,12 +136,15 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
               onChange={(e) => setCajita(e.target.value)}
               required
             >
-              {/* Iteramos dinámicamente sobre las cajas del usuario */}
-              {cajitasDisponibles.map((caja) => (
-                <option key={caja.id} value={caja.id}>
-                  {caja.nombre} (Meta: ${caja.meta})
-                </option>
-              ))}
+              {cajitasDisponibles.length === 0 ? (
+                <option value="">No hay cajitas disponibles</option>
+              ) : (
+                cajitasDisponibles.map((caja) => (
+                  <option key={caja.id} value={caja.id}>
+                    {caja.nombre} (Meta: ${caja.meta})
+                  </option>
+                ))
+              )}
             </select>
           </label>
 
@@ -152,7 +167,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
                 placeholder="Ej. 1.5" 
                 value={tasaInteres} 
                 onChange={(e) => setTasaInteres(e.target.value)}
-                required min="0" step="0.1" // Permite decimales
+                required min="0" step="0.1"
               />
             </label>
           </div>
@@ -176,24 +191,24 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
                 onChange={(e) => setEstado(e.target.value)}
                 required
               >
-                  <option value="En Revisión">En Revisión</option>
-                  <option value="Aprobado">Aprobado</option>
-                  <option value="Liquidado">Liquidado</option>
-              </select>
-            </label>
-
-            <label className="field-card">
-              <span>Tipo de Interes</span>
-              <select  
-                value={tipoInteres} 
-                onChange={(e) => setTipoInteres(e.target.value)}
-                required
-              >
-                  <option value="saldosInsolutos">Sobre Saldos Insolutos</option>
-                  <option value="compuesto">Compuesto</option>
+                <option value="En Revisión">En Revisión</option>
+                <option value="Aprobado">Aprobado</option>
+                <option value="Liquidado">Liquidado</option>
               </select>
             </label>
           </div>
+
+          <label className="field-card">
+            <span>Tipo de Interés</span>
+            <select  
+              value={tipoInteres} 
+              onChange={(e) => setTipoInteres(e.target.value)}
+              required
+            >
+              <option value="saldosInsolutos">Sobre Saldos Insolutos</option>
+              <option value="compuesto">Compuesto</option>
+            </select>
+          </label>
 
           <label className="field-card" style={{ display: 'flex', flexDirection: 'column' }}>
             <span>Fecha de Desembolso Estimada</span>

@@ -9,7 +9,7 @@ using System;
 
 namespace banca_etica_api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admin/[controller]")]
     [ApiController]
     public class HistorialCuadernilloController : ControllerBase
     {

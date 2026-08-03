@@ -951,3 +951,75 @@ input {
   outline: none;
   border-color: #5f584f;
 }
+
+/* Divisor contenedor con Flexbox */
+.sidebar-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 8px 0;
+  width: 100%;
+}
+
+/* Texto de la categoría */
+.sidebar-divider span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(172, 27, 27, 0.633); /* Color tenue */
+  padding-right: 8px; /* Espacio antes de que continúe la línea larga */
+  white-space: nowrap;
+}
+
+/* Línea sutil previa (si quieres una raya pequeña al inicio, opcional) */
+.sidebar-divider::before {
+  content: "";
+  width: 8px; /* Tamaño de la rayita previa */
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.12); /* Opacidad tenue */
+  margin-right: 6px;
+}
+
+/* Línea sutil larga que llena todo el espacio sobrante */
+.sidebar-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.12); /* Opacidad tenue */
+}
+
+/* ANTES (min-height: 100vh): permitía que la página creciera infinitamente hacia abajo */
+/* AHORA: bloqueamos la ventana exactamente al 100% del viewport */
+.app-shell {
+  height: 100vh;
+  width: 100vw;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 20px;
+  overflow: hidden; /* Corta el scroll global de la ventana */
+}
+
+/* AHORA: el Sidebar ocupa el 100% del alto disponible y administra su propio scroll interno */
+.sidebar {
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* Mantiene estáticos el logo y la tarjeta de abajo */
+}
+
+/* Permitir que únicamente la lista de links scrollee si hay muchos elementos */
+.sidebar-nav {
+  display: grid;
+  gap: 8px;
+  overflow-y: auto; /* Scroll independiente para la navegación */
+  padding-right: 4px;
+}
+
+/* AHORA: el contenido principal tiene su propio scroll independiente */
+.main-shell {
+  padding: 22px;
+  height: 100%;
+  overflow-y: auto; /* Permitir scroll vertical solo en la vista derecha */
+}

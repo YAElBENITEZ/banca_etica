@@ -11,6 +11,10 @@ namespace banca_etica_api.Models
         // 2. Llave Foránea
         public Guid CajitaId { get; set; }
 
+        public Guid UsuarioId { get; set;}
+
+        public bool EsColectivo {get; set;}
+
         public string Nombre { get; set; } // "En revisión", "Aprobado", "Liquidado"
         public string TipoInteres { get; set; } // "saldosInsolutos", "compuesto"
 

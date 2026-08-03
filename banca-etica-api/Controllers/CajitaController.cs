@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using banca_etica_api.Data;
 using banca_etica_api.DTOs;
 using banca_etica_api.Models;
@@ -6,51 +7,52 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System;
+using System.Security.Claims; // <-- OBLIGATORIO: Para leer las Claims del JWT
 
 namespace banca_etica_api.Controllers
-{
+{   
+    // 🛡️ Exige Token JWT válido para todo el controlador
+    [Authorize] 
     [Route("api/[controller]")]
     [ApiController]
     public class CajitaController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        // 1. El constructor debe llamarse EXACTAMENTE igual que la clase
         public CajitaController(AppDbContext context)
         {
             _context = context;
         }
 
-        // 2. Este endpoint responderá a POST: http://localhost:5026/api/cajita
+        // 🟢 HTTP POST: Crear cajita asociada automáticamente al usuario autenticado
         [HttpPost]
         public async Task<IActionResult> CrearCajita([FromBody] CajitaRequest request)
         {
             // Validaciones básicas
             if (string.IsNullOrEmpty(request.Nombre) || request.Meta <= 0)
             {
-                return BadRequest(new { mensaje = "El nombre y el monto son obligatorios." });
+                return BadRequest(new { mensaje = "El nombre y la meta son obligatorios." });
+            }
+
+            // 🔑 EXTRAER EL ID DEL USUARIO DESDE EL TOKEN JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+            {
+                return Unauthorized(new { mensaje = "Token de usuario inválido o no proporcionado." });
             }
         
-            // 3. Armamos la entidad Cajita para la Base de Datos
             var nuevaCajita = new Cajita
             {
                 Id = Guid.NewGuid(),
-                UsuarioId = request.UsuarioId, 
+                UsuarioId = usuarioId, // <-- Se asigna automáticamente al usuario logueado
                 Nombre = request.Nombre,
-                
-                // ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA!
                 Meta = request.Meta, 
-                
-                // (Opcional) Si ya no vas a usar Proyeccion612Meses en tu app, 
-                // puedes borrarla de tu modelo después. Por ahora le pasamos la Meta también.
                 Proyeccion612Meses = request.Meta, 
-                
                 SaldoActual = 0.00m,
                 PorcentajeAportacionFondo = 10.00m,
                 EstadoSync = "Sincronizado"
             };
         
-            // 4. Guardamos en PostgreSQL
             _context.Cajitas.Add(nuevaCajita);
             await _context.SaveChangesAsync();
         
@@ -61,15 +63,34 @@ namespace banca_etica_api.Controllers
             });
         }
 
-        // 1. Especificamos que este endpoint responderá a una petición GET
+        // 🟢 HTTP GET: Obtener ÚNICAMENTE las cajitas del usuario logueado
         [HttpGet]
         public async Task<IActionResult> ObtenerCajitas()
         {
-            // 2. Vamos a la base de datos y traemos todas las cajitas en forma de lista
-            // (Asegúrate de tener: using Microsoft.EntityFrameworkCore; hasta arriba de tu archivo)
-            var cajitas = await _context.Cajitas.ToListAsync();
+            // 1. Extraemos el ID del socio autenticado a partir del Token JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // 3. Las devolvemos con un status 200 OK
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+            {
+                return Unauthorized(new { mensaje = "No se pudo recuperar la identidad del usuario." });
+            }
+
+            // 2. Filtramos en SQL para traer SOLO las cajitas de este usuarioID
+            var cajitas = await _context.Cajitas
+                .Where(c => c.UsuarioId == usuarioId && c.EsColectiva == false)
+                .Select(c => new 
+                {
+                    id = c.Id,
+                    nombre = c.Nombre,
+                    saldoActual = c.SaldoActual,
+                    meta = c.Meta,
+                    proyeccion612Meses = c.Proyeccion612Meses,
+                    porcentajeAportacionFondo = c.PorcentajeAportacionFondo,
+                    estadoSync = c.EstadoSync
+                })
+                .ToListAsync();
+
+            // 3. Devolvemos el array filtrado
             return Ok(cajitas);
         }
     }

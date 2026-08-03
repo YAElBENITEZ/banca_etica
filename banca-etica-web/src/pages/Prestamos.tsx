@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import ModalNuevoPrestamo from '../components/ModalNuevoPrestamo';
-import ModalTablaPagosPrestamo from '../components/ModalTablaPagosPrestamo';
+import ModalTablaPagosPrestamo from '../components/Admin/ModalTablaPagosPrestamo';
 import '../App.css'; 
 
 export default function Prestamos() {
@@ -15,7 +16,7 @@ export default function Prestamos() {
   // 2. Función para ir por los datos
   const fetchPrestamos = async () => {
     try {
-      const response = await fetch('http://localhost:5026/api/prestamo');
+      const response = await apiFetch('http://localhost:5026/api/prestamo');
       if (!response.ok) throw new Error('Error al cargar los préstamos');
       
       const data = await response.json();

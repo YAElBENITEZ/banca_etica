@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import '../App.css';
+import '../../App.css';
 
 // 1. Recibiremos el objeto 'prestamo' completo con toda su info
 interface ModalTablaPagosPrestamoProps {
