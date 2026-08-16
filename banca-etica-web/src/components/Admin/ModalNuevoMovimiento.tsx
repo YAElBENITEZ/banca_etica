@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../App.css';
+import '../../App.css';
 
 interface ModalMovimientoProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export default function ModalNuevoMovimiento({ isOpen, onClose, cajitaId, cajita
     
     try {
       // 1. Hacemos la petición POST a la ruta de tu nuevo controlador independiente
-      const response = await fetch('http://localhost:5026/api/historialcuadernillo', {
+      const response = await fetch('http://localhost:5026/api/admin/historialcuadernillo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

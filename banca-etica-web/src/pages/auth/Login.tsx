@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../../App.css'; 
 
 async function readApiResponse(response: Response) {
@@ -23,7 +23,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMensaje, setErrorMensaje] = useState('');
   
-  // 2. Instanciamos el hook de navegación
   const navigate = useNavigate();
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -38,7 +37,6 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // 3. Hacemos la petición a C# (Asegúrate de cambiar el PUERTO por el que use tu backend)
       const response = await fetch('http://localhost:5026/api/auth/login', {
         method: 'POST',
         headers: {
@@ -53,12 +51,16 @@ export default function Login() {
       const data = await readApiResponse(response);
 
       if (!response.ok) {
-        // Si el backend responde con Unauthorized (401)
         throw new Error(data.mensaje || 'Error al iniciar sesión');
       }
 
-      // 4. Si el login es exitoso, navegamos al Dashboard
+      // 🔑 GUARDAMOS EL TOKEN Y DATOS DE SESIÓN
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+
       console.log('Usuario autenticado:', data);
+      
+      // Navegación original a tu Dashboard
       navigate('/dashboard');
 
     } catch (error: any) {
@@ -83,7 +85,7 @@ export default function Login() {
               <small>Acceso seguro</small>
             </div>
           </div>
-          <button className="secondary-button" type="button">
+          <button className="secondary-button" type="button" onClick={() => navigate('/')}>
             Volver
           </button>
         </header>
@@ -102,10 +104,8 @@ export default function Login() {
           <div className="auth-card">
             <div className="auth-tabs">
               <button className="active" type="button">Iniciar sesión</button>
-              <Link to="/register" className="ghost-link" style={{ padding: '10px 14px', textDecoration: 'none' }}>Registrarse</Link>
             </div>
 
-            {/* ¡LECCIÓN! Aquí reemplazamos los divs por un <form> real */}
             <form className="auth-fields" onSubmit={handleLoginSubmit}>
               
               <label className="field-card">

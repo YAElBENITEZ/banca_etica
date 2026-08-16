@@ -10,6 +10,8 @@ namespace banca_etica_api.Models
 
         // 2. Llave Foránea (Foreign Key)
         public Guid UsuarioId { get; set; }
+        
+        public bool EsColectiva {get; set;}
 
         // 3. Atributos de Valor (Tipos de datos financieros)
         public string Nombre { get; set; }

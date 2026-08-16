@@ -17,7 +17,7 @@ namespace banca_etica_api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.28")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -27,6 +27,9 @@ namespace banca_etica_api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("EsColectiva")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("EstadoSync")
                         .IsRequired()
@@ -183,6 +186,9 @@ namespace banca_etica_api.Migrations
                     b.Property<Guid>("CajitaId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("EsColectivo")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("text");
@@ -202,6 +208,13 @@ namespace banca_etica_api.Migrations
 
                     b.Property<decimal>("TasaInteresAplicada")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("TipoInteres")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

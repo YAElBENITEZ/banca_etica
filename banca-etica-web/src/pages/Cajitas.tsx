@@ -1,8 +1,9 @@
 // 1. Importamos useEffect
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import ModalNuevaCaja from '../components/ModalNuevaCaja';
-import ModalNuevoMovimiento from '../components/ModalNuevoMovimiento';
+import ModalNuevoMovimiento from '../components/Admin/ModalNuevoMovimiento';
 import '../App.css'; 
 
 async function readApiResponse(response: Response) {
@@ -32,7 +33,7 @@ export default function Cajitas() {
   // 3. Función para ir al backend a pedir la información
   const fetchCajitas = async () => {
     try {
-      const response = await fetch('http://localhost:5026/api/cajita');
+      const response = await apiFetch('http://localhost:5026/api/cajita');
       if (!response.ok) {
         throw new Error('Error al cargar las cajas');
       }

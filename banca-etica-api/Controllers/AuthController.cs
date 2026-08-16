@@ -5,8 +5,11 @@ using banca_etica_api.DTOs;
 using banca_etica_api.Models;
 using System.Threading.Tasks;
 using BCrypt.Net;
-// Asegúrate de importar Bcrypt si tu editor no lo hace automático
-// usando BCrypt.Net; 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System;
 
 namespace banca_etica_api.Controllers
 {
@@ -24,7 +27,13 @@ namespace banca_etica_api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // 1. Buscamos al usuario por correo
+            // 1. Validar campos requeridos
+            if (string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { mensaje = "El correo y la contraseña son obligatorios." });
+            }
+
+            // 2. Buscar usuario en la BD incluyendo su Rol
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Correo == request.Correo);
@@ -34,86 +43,47 @@ namespace banca_etica_api.Controllers
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
             }
 
-            // 2. ¡LA MAGIA DE BCRYPT!
-            // Comparamos el texto plano (request.Password) contra el hash de la BD (usuario.PasswordHash)
+            // 3. Verificar contraseña cifrada con BCrypt
             bool passwordValido = BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash);
-
             if (!passwordValido)
             {
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
             }
-            
-            // 3. Respuesta exitosa (Después aquí meteremos un JWT)
+
+            // 4. Crear los Claims para el JWT (ID, Correo y Rol)
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Email, usuario.Correo),
+                new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Socio")
+            };
+
+            // 5. Firmar el Token JWT (Usa la misma clave que configuraste en Program.cs)
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperClaveSecretaBancaEtica2026_ClaveLargaYSegura"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: "banca-etica-api",
+                audience: "banca-etica-app",
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7), // Duración de 7 días
+                signingCredentials: creds
+            );
+
+            string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            // 6. Retornar token y datos básicos
             return Ok(new 
             { 
                 mensaje = "Inicio de sesión exitoso",
-                usuarioId = usuario.Id,
-                nombre = usuario.NombreCompleto,
-                rol = usuario.Rol.Nombre 
-            });
-        }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-        {
-            // 1. Validación de negocio: Verificar si el correo ya está registrado
-            bool correoExiste = await _context.Usuarios.AnyAsync(u => u.Correo == request.Correo);
-            if (correoExiste)
-            {
-                return BadRequest(new { mensaje = "El correo electrónico ya se encuentra registrado." });
-            }
-
-            // 2. Validación de gobernanza: Verificar que el RolId proporcionado exista en el catálogo
-            bool rolExiste = await _context.Roles.AnyAsync(r => r.Id == request.RolId);
-            if (!rolExiste)
-            {
-                return BadRequest(new { mensaje = "El rol seleccionado no es válido." });
-            }
-
-            // 3. ¡LECCIÓN DE LARAVEL A C#! Encriptamos la contraseña usando BCrypt
-            // Esto equivale a Hash::make()
-            string passwordHashCardon = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            // 4. Creamos la entidad Usuario con sus campos base
-            var nuevoUsuario = new Usuario
-            {
-                Id = Guid.NewGuid(),
-                NombreCompleto = request.NombreCompleto,
-                Telefono = request.Telefono,
-                Correo = request.Correo,
-                PasswordHash = passwordHashCardon,
-                RolId = request.RolId,
-                EstatusMembresia = "Activo", // Por defecto entran activos
-                ConsentimientosArco = true,  // Validado en los términos de React
-                UmbralAlertaSaldo = 500,     // Alerta base de ejemplo para la billetera
-                FechaAfiliacion = DateTime.UtcNow
-            };
-
-            // 5. APORTACIÓN DE ARQUITECTURA: Inicialización automática de las Cajitas
-            // Todo socio nuevo necesita su cuenta de ahorro lista en ceros metida en su nueva lista
-            nuevoUsuario.Cajitas = new List<Cajita>
-            {
-                new Cajita
+                token = jwtToken,
+                usuario = new 
                 {
-                    Id = Guid.NewGuid(),
-                    Nombre = "Mi Primera Caja", // Le ponemos un nombre por defecto
-                    SaldoActual = 0.00m,
-                    Meta = 0.00m,               // Agregamos el campo Meta que creamos hace rato
-                    Proyeccion612Meses = 0.00m,
-                    PorcentajeAportacionFondo = 10.00m, // Porcentaje comunitario base por reglamento
-                    EstadoSync = "Sincronizado"
+                    id = usuario.Id,
+                    nombre = usuario.NombreCompleto,
+                    correo = usuario.Correo,
+                    rol = usuario.Rol?.Nombre ?? "Socio"
                 }
-            };
-
-            // 6. Impactar la Base de Datos
-            _context.Usuarios.Add(nuevoUsuario);
-            await _context.SaveChangesAsync(); // Guarda al Usuario y a la Cajita al mismo tiempo de forma segura
-
-            return CreatedAtAction(nameof(Login), new { id = nuevoUsuario.Id }, new 
-            {
-                mensaje = "Usuario y cajita de ahorro registrados exitosamente.",
-                usuarioId = nuevoUsuario.Id,
-                correo = nuevoUsuario.Correo
             });
         }
     }
