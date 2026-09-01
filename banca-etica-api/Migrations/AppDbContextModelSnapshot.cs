@@ -17,7 +17,7 @@ namespace banca_etica_api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.29")
+                .HasAnnotation("ProductVersion", "8.0.30")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -59,6 +59,33 @@ namespace banca_etica_api.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Cajitas");
+                });
+
+            modelBuilder.Entity("banca_etica_api.Models.Comunidad", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Municipio")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Comunidades");
                 });
 
             modelBuilder.Entity("banca_etica_api.Models.FondoUnion", b =>
@@ -209,6 +236,10 @@ namespace banca_etica_api.Migrations
                     b.Property<decimal>("TasaInteresAplicada")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("TipoInteres")
                         .IsRequired()
                         .HasColumnType("text");
@@ -326,8 +357,14 @@ namespace banca_etica_api.Migrations
                     b.HasData(
                         new
                         {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Descripcion = "Superadministrador global del sistema y gestión de comunidades",
+                            Nombre = "SuperAdmin"
+                        },
+                        new
+                        {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Descripcion = "Administrador total del sistema",
+                            Descripcion = "Administrador de la comunidad",
                             Nombre = "Admin"
                         },
                         new
@@ -477,6 +514,9 @@ namespace banca_etica_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ComunidadId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("ConsentimientosArco")
                         .HasColumnType("boolean");
 
@@ -510,6 +550,8 @@ namespace banca_etica_api.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ComunidadId");
 
                     b.HasIndex("RolId");
 
@@ -653,11 +695,18 @@ namespace banca_etica_api.Migrations
 
             modelBuilder.Entity("banca_etica_api.Models.Usuario", b =>
                 {
+                    b.HasOne("banca_etica_api.Models.Comunidad", "Comunidad")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("ComunidadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("banca_etica_api.Models.Rol", "Rol")
                         .WithMany("Usuarios")
                         .HasForeignKey("RolId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Comunidad");
 
                     b.Navigation("Rol");
                 });
@@ -667,6 +716,11 @@ namespace banca_etica_api.Migrations
                     b.Navigation("Historial");
 
                     b.Navigation("Prestamos");
+                });
+
+            modelBuilder.Entity("banca_etica_api.Models.Comunidad", b =>
+                {
+                    b.Navigation("Usuarios");
                 });
 
             modelBuilder.Entity("banca_etica_api.Models.Prestamo", b =>
@@ -693,8 +747,7 @@ namespace banca_etica_api.Migrations
 
                     b.Navigation("Lotes");
 
-                    b.Navigation("ProgresoEducativo")
-                        .IsRequired();
+                    b.Navigation("ProgresoEducativo");
 
                     b.Navigation("Transacciones");
                 });

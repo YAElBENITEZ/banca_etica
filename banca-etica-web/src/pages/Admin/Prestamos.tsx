@@ -93,6 +93,10 @@ export default function Prestamos() {
                           Fondeado por: <strong>{prestamo.cajitaNombre}</strong>
                         </div>
 
+                        <div style={{ fontSize: '13px', color: '#5f584f', marginBottom: '8px' }}>
+                          Tipo préstamo: <strong>{prestamo.tipo}</strong>
+                        </div>
+
                         <span style={{ 
                           fontSize: '12px', 
                           padding: '4px 8px', 

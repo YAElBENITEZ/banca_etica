@@ -15,6 +15,7 @@ namespace banca_etica_api.Models
 
         public bool EsColectivo {get; set;}
 
+        public string Tipo { get; set; } // entrada o salida de dinero, dictados por ingreso o egreso
         public string Nombre { get; set; } // "En revisión", "Aprobado", "Liquidado"
         public string TipoInteres { get; set; } // "saldosInsolutos", "compuesto"
 

@@ -49,6 +49,7 @@ namespace banca_etica_api.Controllers.Admin
                 Id = Guid.NewGuid(),
                 UsuarioId = usuarioId,
                 Nombre = request.Nombre,
+                Tipo = request.Tipo,
                 EsColectivo = request.EsColectivo,
                 MontoAprobado = request.MontoAprobado, 
                 PlazoMeses = request.PlazoMeses,
@@ -83,6 +84,7 @@ namespace banca_etica_api.Controllers.Admin
                 {
                     id = p.Id,
                     proposito = p.Nombre,
+                    tipo = p.Tipo,
                     montoOriginal = p.MontoAprobado,
                     tasa = p.TasaInteresAplicada,
                     plazoMeses = p.PlazoMeses, 

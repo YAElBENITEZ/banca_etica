@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
-import { apiFetch } from '../services/api'; // <-- 1. Importamos apiFetch
+import { apiFetch } from '../services/api'; 
 import 'react-datepicker/dist/react-datepicker.css';
 import '../App.css';
 
@@ -13,6 +13,7 @@ interface ModalMovimientoProps {
 
 export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetUserId }: ModalMovimientoProps) {
   const [nombre, setNombre] = useState('');
+  const [tipo, setTipo] = useState('');
   const [cajita, setCajita] = useState('');
   const [montoAprobado, setMontoAprobado] = useState('');
   const [tasaInteres, setTasaInteres] = useState('');
@@ -23,7 +24,6 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
 
   const [cajitasDisponibles, setCajitasDisponibles] = useState<any[]>([]);
 
-  // 1. Cargamos las cajitas con apiFetch y validamos si res.ok es true
   useEffect(() => {
     if (isOpen) {
       const fetchCajitas = async () => {
@@ -50,7 +50,6 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
 
   if (!isOpen) return null;
 
-  // 2. Procesamos la creación del préstamo con apiFetch (que adjunta el JWT)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -69,11 +68,11 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
         throw new Error('No se identificó el usuario para asociar el préstamo.');
       }
 
-      // 🔑 AQUÍ ESTABA EL DETALLE: Cambiamos fetch por apiFetch
       const response = await apiFetch('http://localhost:5026/api/prestamo', {
         method: 'POST',
         body: JSON.stringify({
           Nombre: nombre,
+          Tipo: tipo,
           UsuarioId: activeUserId,
           MontoAprobado: parseFloat(montoAprobado),
           TasaInteresAplicada: parseFloat(tasaInteres),
@@ -94,7 +93,6 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
 
       alert(`¡Préstamo registrado exitosamente!`);
       
-      // Limpiar estados
       setNombre('');
       setMontoAprobado('');
       setTasaInteres('');
@@ -112,7 +110,15 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
 
   return (
     <div className="modal-backdrop"> 
-      <div className="modal-card">
+      {/* Se agregan estilos inline para restringir la altura y permitir scroll */}
+      <div 
+        className="modal-card" 
+        style={{ 
+          maxHeight: '90vh', 
+          overflowY: 'auto',
+          boxSizing: 'border-box'
+        }}
+      >
         <h3>Nuevo Préstamo</h3>
         <p>Estás registrando un nuevo crédito para un productor.</p>
         
@@ -130,7 +136,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
           </label>
 
           <label className="field-card">
-            <span>¿De qué Caja de Ahorro sale el dinero?</span>
+            <span>¿A qué Caja de Ahorro corresponde el dinero?</span>
             <select  
               value={cajita} 
               onChange={(e) => setCajita(e.target.value)}
@@ -197,6 +203,18 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
               </select>
             </label>
           </div>
+
+          <label className="field-card">
+            <span>Tipo</span>
+            <select  
+              value={tipo} 
+              onChange={(e) => setTipo(e.target.value)}
+              required
+            >
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+            </select>
+          </label>
 
           <label className="field-card">
             <span>Tipo de Interés</span>

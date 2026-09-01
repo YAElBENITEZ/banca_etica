@@ -8,6 +8,7 @@ export default function Sidebar() {
   const usuarioStored = localStorage.getItem('usuario');
   const usuario = usuarioStored ? JSON.parse(usuarioStored) : null;
   const userRol = usuario?.rol || 'Socio';
+  const userComunidad = usuario?.comunidadNombre || 'Sin asignar';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -27,9 +28,10 @@ export default function Sidebar() {
         <div>
           <p className="brand-title">MezcalPay</p>
           <small className="brand-subtitle">Panel principal</small>
+          <br />
         </div>
       </div>
-
+      <small className="comunidad-name">{( userComunidad )}</small>
       {/* 📜 ÁREA CON SCROLL INDEPENDIENTE */}
       <nav className="sidebar-nav">
         {/* DIVISOR 1: PRINCIPAL */}
@@ -37,31 +39,57 @@ export default function Sidebar() {
           <span>Principal</span>
         </div>
 
-        <NavLink 
-          to="/dashboard" 
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-        >
-          Inicio
-        </NavLink>
+        {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && (
+          <NavLink 
+            to="/dashboard" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Inicio
+          </NavLink>
+        )}
+
+        {/*Divisor SuperAdmin*/} 
+        {(userRol === 'SuperAdmin') && (
+          <NavLink 
+            to="/s-admin/dashboard" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Inicio
+          </NavLink>
+        )}
+        {(userRol === 'SuperAdmin') && (
+          <NavLink 
+            to="/s-admin/comunidades" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Comunidades
+          </NavLink>
+        )}
 
         {/* DIVISOR 2: MIS MOVIMIENTOS */}
-        <div className="sidebar-divider">
-          <span>Mis Movimientos</span>
-        </div>
+        {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && (
+          <div className="sidebar-divider">
+            <span>Mis Movimientos</span>
+          </div>
+        )}
 
-        <NavLink 
-          to="/mis-cajitas" 
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-        >
-          Mis Cajitas
-        </NavLink>
+        {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && (
+          <NavLink 
+            to="/mis-cajitas" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Mis Cajitas
+          </NavLink>
+        )}
 
-        <NavLink 
-          to="/mis-prestamos" 
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-        >
-          Mis Préstamos
-        </NavLink>
+        {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && (
+          <NavLink 
+            to="/mis-prestamos" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Mis Préstamos
+          </NavLink>
+        )}
 
         {/* DIVISOR 3: Admin */}
         {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo') && (
@@ -98,16 +126,20 @@ export default function Sidebar() {
         )}
 
         {/* DIVISOR 4: MI INFORMACIÓN */}
-        <div className="sidebar-divider">
-          <span>Mi Información</span>
-        </div>
+        {/* {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && ( */}
+          <div className="sidebar-divider">
+            <span>Mi Información</span>
+          </div>
+        {/* )} */}
 
-        <NavLink 
-          to="/mi-perfil" 
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-        >
-          Mi Perfil
-        </NavLink>
+        {/* {(userRol === 'Admin' || userRol === 'Tesorero' || userRol === 'Consejo' || userRol === 'Socio') && ( */}
+          <NavLink 
+            to="/mi-perfil" 
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            Mi Perfil
+          </NavLink>
+        {/* )} */}
       </nav>
 
       {/* 📌 FIJO EN LA PARTE INFERIOR */}

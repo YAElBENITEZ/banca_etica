@@ -46,7 +46,12 @@ export default function Login() {
       console.log('Usuario autenticado:', data);
       
       // Navegación original a tu Dashboard
-      navigate('/dashboard');
+      // En tu Login.jsx / Login.tsx tras recibir la respuesta de la API:
+      if (data.usuario.rol === 'SuperAdmin') {
+        navigate('/s-admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
 
     } catch (error: any) {
       setErrorMensaje(error.message);

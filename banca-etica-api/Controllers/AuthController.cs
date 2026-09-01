@@ -18,24 +18,71 @@ namespace banca_etica_api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private static readonly Guid SuperAdminRolId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
         public AuthController(AppDbContext context)
         {
             _context = context;
         }
 
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            // 1. Validar campos
+            if (string.IsNullOrEmpty(request.NombreCompleto) || 
+                string.IsNullOrEmpty(request.Correo) || 
+                string.IsNullOrEmpty(request.Telefono) || 
+                string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { mensaje = "Todos los campos son obligatorios." });
+            }
+
+            // 2. Verificar si el correo ya existe
+            var existeCorreo = await _context.Usuarios.AnyAsync(u => u.Correo == request.Correo);
+            if (existeCorreo)
+            {
+                return BadRequest(new { mensaje = "El correo electrónico ya está registrado." });
+            }
+
+            // 3. Hashear la contraseña
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            // 4. Crear el usuario
+            var usuario = new Usuario
+            {
+                Id = Guid.NewGuid(),
+                NombreCompleto = request.NombreCompleto,
+                Telefono = request.Telefono,
+                Correo = request.Correo,
+                PasswordHash = hashedPassword,
+                RolId = request.RolId,
+                EstatusMembresia = "Activo",
+                FechaAfiliacion = DateTime.UtcNow,
+                ConsentimientosArco = true,
+                UmbralAlertaSaldo = 0
+            };
+
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            return Ok(new 
+            { 
+                mensaje = "Usuario registrado exitosamente.",
+                usuarioId = usuario.Id 
+            });
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // 1. Validar campos requeridos
             if (string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest(new { mensaje = "El correo y la contraseña son obligatorios." });
             }
 
-            // 2. Buscar usuario en la BD incluyendo su Rol
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
+                .Include(u => u.Comunidad)
                 .FirstOrDefaultAsync(u => u.Correo == request.Correo);
 
             if (usuario == null)
@@ -43,22 +90,28 @@ namespace banca_etica_api.Controllers
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
             }
 
-            // 3. Verificar contraseña cifrada con BCrypt
             bool passwordValido = BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash);
             if (!passwordValido)
             {
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
             }
 
-            // 4. Crear los Claims para el JWT (ID, Correo y Rol)
+            // 4. Validación: Solo SuperAdmin puede ingresar sin comunidad
+            bool esSuperAdmin = usuario.RolId == SuperAdminRolId;
+            if (!esSuperAdmin && usuario.ComunidadId == null)
+            {
+                return Unauthorized(new { mensaje = "Tu cuenta no está asignada a ninguna comunidad. Contacta al administrador." });
+            }
+
+            // 5. Crear los Claims para el JWT
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new Claim(ClaimTypes.Email, usuario.Correo),
-                new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Socio")
+                new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Socio"),
+                new Claim("ComunidadId", usuario.ComunidadId?.ToString() ?? string.Empty)
             };
 
-            // 5. Firmar el Token JWT (Usa la misma clave que configuraste en Program.cs)
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperClaveSecretaBancaEtica2026_ClaveLargaYSegura"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -66,13 +119,12 @@ namespace banca_etica_api.Controllers
                 issuer: "banca-etica-api",
                 audience: "banca-etica-app",
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7), // Duración de 7 días
+                expires: DateTime.UtcNow.AddDays(7),
                 signingCredentials: creds
             );
 
             string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // 6. Retornar token y datos básicos
             return Ok(new 
             { 
                 mensaje = "Inicio de sesión exitoso",
@@ -82,7 +134,9 @@ namespace banca_etica_api.Controllers
                     id = usuario.Id,
                     nombre = usuario.NombreCompleto,
                     correo = usuario.Correo,
-                    rol = usuario.Rol?.Nombre ?? "Socio"
+                    rol = usuario.Rol?.Nombre ?? "Socio",
+                    comunidadId = usuario.ComunidadId,
+                    comunidadNombre = usuario.Comunidad?.Nombre ?? null
                 }
             });
         }

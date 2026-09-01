@@ -5,6 +5,7 @@ namespace banca_etica_api.DTOs
     public class PrestamoRequest
     {
         public string Nombre { get; set; }
+        public string Tipo { get; set; }
         public string TipoInteres { get; set; }
         public bool EsColectivo {get; set;}
         public decimal MontoAprobado { get; set; }

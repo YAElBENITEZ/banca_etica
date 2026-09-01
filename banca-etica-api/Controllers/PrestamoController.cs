@@ -49,6 +49,7 @@ namespace banca_etica_api.Controllers
                 Id = Guid.NewGuid(),
                 UsuarioId = usuarioId, // <-- Asignación automática de identidad
                 Nombre = request.Nombre,
+                Tipo = request.Tipo,
                 MontoAprobado = request.MontoAprobado, 
                 PlazoMeses = request.PlazoMeses,
                 Estado = request.Estado,
@@ -86,6 +87,7 @@ namespace banca_etica_api.Controllers
                 {
                     id = p.Id,
                     proposito = p.Nombre,
+                    tipo = p.Tipo,
                     montoOriginal = p.MontoAprobado,
                     tasa = p.TasaInteresAplicada,
                     plazoMeses = p.PlazoMeses, 

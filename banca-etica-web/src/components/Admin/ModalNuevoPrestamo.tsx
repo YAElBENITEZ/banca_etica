@@ -12,6 +12,7 @@ interface ModalMovimientoProps {
 
 export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: ModalMovimientoProps) {
   const [nombre, setNombre] = useState('');
+  const [tipo, setTipo] = useState('');
   const [cajita, setCajita] = useState('');
   const [montoAprobado, setMontoAprobado] = useState('');
   const [tasaInteres, setTasaInteres] = useState('');
@@ -64,6 +65,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
         },
         body: JSON.stringify({
           Nombre: nombre,
+          Tipo: tipo,
           MontoAprobado: parseFloat(montoAprobado),
           TasaInteresAplicada: parseFloat(tasaInteres),
           PlazoMeses: parseInt(plazoMeses),
@@ -120,7 +122,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
           </label>
 
           <label className="field-card">
-            <span>¿De qué Caja de Ahorro sale el dinero?</span>
+            <span>¿A qué Caja de Ahorro corresponde el dinero?</span>
             <select  
               value={cajita} 
               onChange={(e) => setCajita(e.target.value)}
@@ -181,6 +183,18 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
                   <option value="En Revisión">En Revisión</option>
                   <option value="Aprobado">Aprobado</option>
                   <option value="Liquidado">Liquidado</option>
+              </select>
+            </label>
+
+            <label className="field-card">
+              <span>Tipo</span>
+              <select  
+                value={tipo} 
+                onChange={(e) => setTipo(e.target.value)}
+                required
+              >
+                  <option value="entrada">Entrada</option>
+                  <option value="salida">Salida</option>
               </select>
             </label>
 

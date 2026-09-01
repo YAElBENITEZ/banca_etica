@@ -1,5 +1,5 @@
 using System;
-using System.ComponentModel.DataAnnotations; // <-- Importante
+using System.ComponentModel.DataAnnotations;
 
 namespace banca_etica_api.DTOs
 {
@@ -31,5 +31,8 @@ namespace banca_etica_api.DTOs
 
         [Required(ErrorMessage = "El RolId es obligatorio.")]
         public Guid RolId { get; set; }
+
+        // Opcional para SuperAdmin / Requerido cuando se asigna a una comunidad
+        public Guid? ComunidadId { get; set; }
     }
 }

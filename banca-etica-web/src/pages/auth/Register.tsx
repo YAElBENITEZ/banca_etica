@@ -10,7 +10,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   
   // Por defecto, seleccionamos el ID del rol "Socio" que sembramos en Postgres
-  const [rolId, setRolId] = useState('22222222-2222-2222-2222-222222222222'); 
+  const [rolId, setRolId] = useState('00000000-0000-0000-0000-000000000001'); 
 
   // Estados de interfaz
   const [isLoading, setIsLoading] = useState(false);
