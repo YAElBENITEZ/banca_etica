@@ -29,7 +29,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
     if (isOpen) {
       const fetchCajitas = async () => {
         try {
-          const res = await apiFetch('http://localhost:5026/api/admin/cajita');
+          const res = await apiFetch('/api/admin/cajita');
           const data = await res.json();
           setCajitasDisponibles(data);
           
@@ -58,7 +58,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess }: Modal
 
     try {
       // 1. Hacemos la petición POST a tu nuevo controlador
-      const response = await apiFetch('http://localhost:5026/api/admin/prestamo', {
+      const response = await apiFetch('/api/admin/prestamo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

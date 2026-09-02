@@ -18,7 +18,7 @@ export default function Cajitas() {
   // 3. Función para ir al backend a pedir la información
   const fetchCajitas = async () => {
     try {
-      const response = await apiFetch('http://localhost:5026/api/cajita');
+      const response = await apiFetch('/api/cajita');
       if (!response.ok) {
         throw new Error('Error al cargar las cajas');
       }

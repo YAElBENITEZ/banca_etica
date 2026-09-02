@@ -48,7 +48,7 @@ export default function ModalNuevoSocio({ isOpen, onClose, onSuccess }: ModalNue
     };
 
     try {
-      const response = await apiFetch('http://localhost:5026/api/admin/usuario', {
+      const response = await apiFetch('/api/admin/usuario', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

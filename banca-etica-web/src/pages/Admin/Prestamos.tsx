@@ -16,7 +16,7 @@ export default function Prestamos() {
   // 2. Función para ir por los datos
   const fetchPrestamos = async () => {
     try {
-      const response = await apiFetch('http://localhost:5026/api/admin/prestamo');
+      const response = await apiFetch('/api/admin/prestamo');
       if (!response.ok) throw new Error('Error al cargar los préstamos');
       
       const data = await response.json();

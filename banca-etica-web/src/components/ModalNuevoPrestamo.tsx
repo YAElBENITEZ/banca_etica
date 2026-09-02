@@ -28,7 +28,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
     if (isOpen) {
       const fetchCajitas = async () => {
         try {
-          const res = await apiFetch('http://localhost:5026/api/cajita');
+          const res = await apiFetch('/api/cajita');
           
           if (!res.ok) {
             throw new Error(`Error ${res.status}: No se pudieron cargar las cajitas`);
@@ -68,7 +68,7 @@ export default function ModalNuevoPrestamo({ isOpen, onClose, onSuccess, targetU
         throw new Error('No se identificó el usuario para asociar el préstamo.');
       }
 
-      const response = await apiFetch('http://localhost:5026/api/prestamo', {
+      const response = await apiFetch('/api/prestamo', {
         method: 'POST',
         body: JSON.stringify({
           Nombre: nombre,

@@ -21,7 +21,7 @@ export default function ModalNuevoMovimiento({ isOpen, onClose, cajitaId, cajita
     
     try {
       // 1. Hacemos la petición POST a la ruta de tu nuevo controlador independiente
-      const response = await fetch('http://localhost:5026/api/admin/historialcuadernillo', {
+      const response = await fetch('/api/admin/historialcuadernillo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -30,7 +30,7 @@ export default function Comunidades() {
   const fetchComunidades = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch('http://localhost:5026/api/superadmin/comunidad');
+      const res = await apiFetch('/api/superadmin/comunidad');
       if (res.ok) {
         const data = await res.json();
         setComunidades(data);

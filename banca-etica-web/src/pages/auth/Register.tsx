@@ -32,7 +32,7 @@ export default function Register() {
     try {
       // 2. Apuntamos al endpoint que acabas de crear en C#
       // Recuerda verificar si tu puerto es el 7100 u otro
-      const response = await fetch('http://localhost:5026/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

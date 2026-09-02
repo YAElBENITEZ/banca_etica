@@ -47,8 +47,8 @@ export default function ModalNuevaComunidad({ isOpen, onClose, onSuccess, comuni
     setIsLoading(true);
 
     const url = esEdicion 
-      ? `http://localhost:5026/api/superadmin/comunidad/${comunidadToEdit?.id}` 
-      : 'http://localhost:5026/api/superadmin/comunidad';
+      ? `/api/superadmin/comunidad/${comunidadToEdit?.id}` 
+      : '/api/superadmin/comunidad';
 
     const method = esEdicion ? 'PUT' : 'POST';
 

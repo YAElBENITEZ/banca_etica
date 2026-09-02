@@ -53,7 +53,7 @@ export default function ModalNuevoUsuarioComunidad({
     };
 
     try {
-      const response = await apiFetch('http://localhost:5026/api/superadmin/comunidad/usuario', {
+      const response = await apiFetch('/api/superadmin/comunidad/usuario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

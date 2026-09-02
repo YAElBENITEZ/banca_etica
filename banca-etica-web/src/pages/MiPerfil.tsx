@@ -41,7 +41,7 @@ export default function MiPerfil() {
     try {
       const token = localStorage.getItem('token'); // <-- Verifica el nombre exacto de la llave
 
-      const response = await fetch('http://localhost:5026/api/perfil/me', {
+      const response = await fetch('/api/perfil/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ export default function MiPerfil() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5026/api/perfil/me', {
+      const response = await fetch('/api/perfil/me', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

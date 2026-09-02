@@ -32,7 +32,7 @@ export default function ModalNuevaCaja({ isOpen, onClose, targetUserId }: ModalP
       }
 
       // 2. Reemplazamos fetch por apiFetch (que adjunta el Bearer Token automáticamente)
-      const response = await apiFetch('http://localhost:5026/api/admin/cajita', {
+      const response = await apiFetch('/api/admin/cajita', {
         method: 'POST',
         body: JSON.stringify({
           Nombre: nombre,

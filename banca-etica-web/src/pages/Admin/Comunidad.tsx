@@ -35,7 +35,7 @@ export default function Comunidad() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiFetch('http://localhost:5026/api/admin/usuario');
+      const response = await apiFetch('/api/admin/usuario');
       if (!response.ok) {
         throw new Error(`Error en el servidor (${response.status})`);
       }
