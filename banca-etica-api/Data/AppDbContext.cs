@@ -11,50 +11,24 @@ namespace banca_etica_api.Data
         {
         }
 
-        // 1. Identidad y Gobernanza
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<Comunidad> Comunidades { get; set; }
-        public DbSet<ReglamentoUnion> Reglamentos { get; set; }
-        public DbSet<ProgresoEducacion> ProgresosEducativos { get; set; }
-
-        // 2. Ahorro Cooperativo
-        public DbSet<Cajita> Cajitas { get; set; }
-        public DbSet<HistorialCuadernillo> Historiales { get; set; }
-        public DbSet<FondoUnion> Fondos { get; set; }
+        public DbSet<Cooperativa> Cooperativas { get; set; }
+        public DbSet<ConfiguracionAportacion> ConfiguracionesAportacion { get; set; }
+        public DbSet<ConfiguracionRendimiento> ConfiguracionesRendimiento { get; set; }
+        public DbSet<ConfiguracionPrestamo> ConfiguracionesPrestamo { get; set; }
+        public DbSet<Ciclo> Ciclos { get; set; }
+        public DbSet<PeriodoAportacion> PeriodosAportacion { get; set; }
+        public DbSet<Aportacion> Aportaciones { get; set; }
         public DbSet<Prestamo> Prestamos { get; set; }
-
-        // 3. Producción y Billetera Diaria
-        public DbSet<LoteProduccion> Lotes { get; set; }
-        public DbSet<Transaccion> Transacciones { get; set; }
-
-        // 4. Arquitectura Offline-First
-        public DbSet<Sincronizacion> ColaSincronizacion { get; set; }
-
-        // Tablas normalizadas
-        public DbSet<TablaPagosPrestamo> TablaPagosPrestamos { get; set; }
-        public DbSet<PrestamoAvalista> PrestamoAvalistas { get; set; }
+        public DbSet<PagoPrestamo> PagosPrestamo { get; set; }
+        public DbSet<DistribucionCierre> DistribucionesCierre { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // 1. Llave primaria compuesta para Avalistas
-            modelBuilder.Entity<PrestamoAvalista>()
-                .HasKey(pa => new { pa.PrestamoId, pa.AvalistaUsuarioId });
-
-            // 2. Relaciones de Avalistas con Préstamo y Usuario
-            modelBuilder.Entity<PrestamoAvalista>()
-                .HasOne(pa => pa.Prestamo)
-                .WithMany(p => p.Avalistas)
-                .HasForeignKey(pa => pa.PrestamoId);
-
-            modelBuilder.Entity<PrestamoAvalista>()
-                .HasOne(pa => pa.AvalistaUsuario)
-                .WithMany()
-                .HasForeignKey(pa => pa.AvalistaUsuarioId);
-
-            // 3. Estandarización de columnas decimal a numeric(18,2)
+            // 1. Estandarizar decimales a numeric(18,2)
             foreach (var property in modelBuilder.Model.GetEntityTypes()
                          .SelectMany(t => t.GetProperties())
                          .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
@@ -62,41 +36,133 @@ namespace banca_etica_api.Data
                 property.SetColumnType("numeric(18,2)");
             }
 
-            // 4. Precargar (Seed) los Roles principales del sistema con IDs fijos
-            var superAdminRolId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var adminRolId      = Guid.Parse("11111111-1111-1111-1111-111111111111");
-            var socioRolId      = Guid.Parse("22222222-2222-2222-2222-222222222222");
-            var tesoreroRolId   = Guid.Parse("33333333-3333-3333-3333-333333333333");
-            var consejoRolId    = Guid.Parse("44444444-4444-4444-4444-444444444444");
-            
-            modelBuilder.Entity<Rol>().HasData(
-                new Rol { Id = superAdminRolId, Nombre = "SuperAdmin", Descripcion = "Superadministrador global del sistema y gestión de comunidades" },
-                new Rol { Id = adminRolId,      Nombre = "Admin",      Descripcion = "Administrador de la comunidad" },
-                new Rol { Id = socioRolId,      Nombre = "Socio",      Descripcion = "Productor artesanal / agricultor" },
-                new Rol { Id = tesoreroRolId,   Nombre = "Tesorero",   Descripcion = "Encargado de gestionar la caja comunal" },
-                new Rol { Id = consejoRolId,    Nombre = "Consejo",    Descripcion = "Miembro del comité de administración o vigilancia" }
-            );
+            // 2. Unicidad de campos clave
+            modelBuilder.Entity<Cooperativa>()
+                .HasIndex(c => c.Codigo)
+                .IsUnique();
 
-            // 5. Relación Usuario -> Rol
             modelBuilder.Entity<Usuario>()
-                .HasOne(u => u.Rol)
-                .WithMany(r => r.Usuarios)
-                .HasForeignKey(u => u.RolId)
+                .HasIndex(u => u.Correo)
+                .IsUnique();
+
+            modelBuilder.Entity<Aportacion>()
+                .HasIndex(a => new { a.PeriodoId, a.SocioId })
+                .IsUnique();
+
+            modelBuilder.Entity<DistribucionCierre>()
+                .HasIndex(d => new { d.CicloId, d.SocioId })
+                .IsUnique();
+
+            // 3. Configuraciones 1:1 con Cooperativa
+            modelBuilder.Entity<Cooperativa>()
+                .HasOne(c => c.ConfigAportacion)
+                .WithOne(ca => ca.Cooperativa)
+                .HasForeignKey<ConfiguracionAportacion>(ca => ca.CooperativaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Cooperativa>()
+                .HasOne(c => c.ConfigRendimiento)
+                .WithOne(cr => cr.Cooperativa)
+                .HasForeignKey<ConfiguracionRendimiento>(cr => cr.CooperativaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Cooperativa>()
+                .HasOne(c => c.ConfigPrestamo)
+                .WithOne(cp => cp.Cooperativa)
+                .HasForeignKey<ConfiguracionPrestamo>(cp => cp.CooperativaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 4. Relaciones de Cooperativa
+            modelBuilder.Entity<Cooperativa>()
+                .HasOne(c => c.Gestor)
+                .WithMany()
+                .HasForeignKey(c => c.GestorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 6. Relación Usuario -> Cajitas (1:N)
-            modelBuilder.Entity<Cajita>()
-                .HasOne(c => c.Usuario)
-                .WithMany(u => u.Cajitas)
-                .HasForeignKey(c => c.UsuarioId);
+            modelBuilder.Entity<Cooperativa>()
+                .HasOne(c => c.Tesorero)
+                .WithMany()
+                .HasForeignKey(c => c.TesoreroId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            // 7. Relación Usuario -> Comunidad (Opcional, 1:N)
             modelBuilder.Entity<Usuario>()
-                .HasOne(u => u.Comunidad)
-                .WithMany(c => c.Usuarios)
-                .HasForeignKey(u => u.ComunidadId)
+                .HasOne(u => u.Cooperativa)
+                .WithMany(c => c.Socios)
+                .HasForeignKey(u => u.CooperativaId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // 5. Relaciones de Aportación (desambiguadas)
+            modelBuilder.Entity<Aportacion>()
+                .HasOne(a => a.Socio)
+                .WithMany()
+                .HasForeignKey(a => a.SocioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Aportacion>()
+                .HasOne(a => a.Tesorero)
+                .WithMany(u => u.AportacionesRegistradas)
+                .HasForeignKey(a => a.TesoreroId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 6. Relaciones de Préstamos
+            modelBuilder.Entity<Prestamo>()
+                .HasOne(p => p.Socio)
+                .WithMany(u => u.PrestamosComoTitular)
+                .HasForeignKey(p => p.SocioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prestamo>()
+                .HasOne(p => p.Aval)
+                .WithMany(u => u.PrestamosComoAval)
+                .HasForeignKey(p => p.AvalId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prestamo>()
+                .HasOne(p => p.Tesorero)
+                .WithMany()
+                .HasForeignKey(p => p.TesoreroId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 7. Relaciones de Pagos de Préstamo
+            modelBuilder.Entity<PagoPrestamo>()
+                .HasOne(pp => pp.Prestamo)
+                .WithMany(p => p.Pagos)
+                .HasForeignKey(pp => pp.PrestamoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PagoPrestamo>()
+                .HasOne(pp => pp.Tesorero)
+                .WithMany()
+                .HasForeignKey(pp => pp.TesoreroId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 8. Relaciones de Distribuciones de Cierre
+            modelBuilder.Entity<DistribucionCierre>()
+                .HasOne(d => d.Socio)
+                .WithMany(u => u.Distribuciones)
+                .HasForeignKey(d => d.SocioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DistribucionCierre>()
+                .HasOne(d => d.TesoreroEntrega)
+                .WithMany()
+                .HasForeignKey(d => d.TesoreroEntregaId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 9. Seed de Roles
+            var gestorRolId   = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var tesoreroRolId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var socioRolId    = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
+            modelBuilder.Entity<Rol>().HasData(
+                new Rol { Id = gestorRolId,   Nombre = "GESTOR",   Descripcion = "Administrador que crea cooperativas y configura reglas" },
+                new Rol { Id = tesoreroRolId, Nombre = "TESORERO", Descripcion = "Operador financiero que registra movimientos en bitácora" },
+                new Rol { Id = socioRolId,    Nombre = "SOCIO",    Descripcion = "Usuario que consulta su historial, préstamos y comprobantes" }
+            );
         }
     }
 }

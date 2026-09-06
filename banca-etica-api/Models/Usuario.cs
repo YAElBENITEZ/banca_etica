@@ -5,35 +5,29 @@ namespace banca_etica_api.Models
 {
     public class Usuario
     {
-        // Llave primaria
         public Guid Id { get; set; }
-
-        // Perfil Básico
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string Telefono { get; set; } = string.Empty;
+        public Guid RolId { get; set; }
+        public Guid? CooperativaId { get; set; }
+        public string? NumeroSocio { get; set; }
+        public string Nombres { get; set; } = string.Empty;
+        public string ApellidoPaterno { get; set; } = string.Empty;
+        public string? ApellidoMaterno { get; set; }
+        public DateTime? FechaNacimiento { get; set; }
+        public string? Telefono { get; set; }
+        public string? Direccion { get; set; }
         public string Correo { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
+        public bool ConsentimientoArco { get; set; } = false;
+        public string Estatus { get; set; } = "ACTIVO";
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
-        // Seguridad y Gobernanza
-        public Guid RolId { get; set; }
+        // Propiedades de navegación
         public virtual Rol Rol { get; set; } = null!;
-        public string EstatusMembresia { get; set; } = "Activo"; // "Activo", "Suspendido", "Baja Voluntaria"
+        public virtual Cooperativa? Cooperativa { get; set; }
 
-        // Comunidad (Opcional para Superadmin y Admins globales)
-        public Guid? ComunidadId { get; set; }
-        public virtual Comunidad? Comunidad { get; set; }
-
-        // Configuraciones y Legales
-        public bool ConsentimientosArco { get; set; }
-        public decimal UmbralAlertaSaldo { get; set; }
-        public DateTime FechaAfiliacion { get; set; } = DateTime.UtcNow;
-
-        // Relaciones 1 a 1
-        public virtual ProgresoEducacion? ProgresoEducativo { get; set; }
-
-        // Relaciones 1 a N
-        public virtual ICollection<Cajita> Cajitas { get; set; } = new List<Cajita>();
-        public virtual ICollection<LoteProduccion> Lotes { get; set; } = new List<LoteProduccion>();
-        public virtual ICollection<Transaccion> Transacciones { get; set; } = new List<Transaccion>();
+        public virtual ICollection<Aportacion> AportacionesRegistradas { get; set; } = new List<Aportacion>();
+        public virtual ICollection<Prestamo> PrestamosComoTitular { get; set; } = new List<Prestamo>();
+        public virtual ICollection<Prestamo> PrestamosComoAval { get; set; } = new List<Prestamo>();
+        public virtual ICollection<DistribucionCierre> Distribuciones { get; set; } = new List<DistribucionCierre>();
     }
 }
