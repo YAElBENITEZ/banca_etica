@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../../App.css';
+
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+  const raw = await response.text();
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { mensaje: raw };
+    }
+  }
+
+  return { mensaje: raw };
+}
 
 export default function Register() {
   // 1. Estados que coinciden exactamente con nuestro DTO en C#
@@ -9,21 +24,36 @@ export default function Register() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   
-  // Por defecto, seleccionamos el ID del rol "Socio" que sembramos en Postgres
-  const [rolId, setRolId] = useState('00000000-0000-0000-0000-000000000001'); 
+  const [cooperativas, setCooperativas] = useState<Array<{ id: string; nombre: string }>>([]);
+  const [cooperativaId, setCooperativaId] = useState('');
 
   // Estados de interfaz
   const [isLoading, setIsLoading] = useState(false);
   const [errorMensaje, setErrorMensaje] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const cargarCooperativas = async () => {
+      try {
+        const response = await fetch('/api/auth/cooperativas');
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.mensaje || 'No se pudieron cargar las cooperativas.');
+        setCooperativas(data as Array<{ id: string; nombre: string }>);
+      } catch (error) {
+        setErrorMensaje(error instanceof Error ? error.message : 'No se pudieron cargar las cooperativas.');
+      }
+    };
+
+    void cargarCooperativas();
+  }, []);
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMensaje('');
 
     // Validación básica front-end
-    if (!nombreCompleto || !telefono || !correo || !password) {
-      setErrorMensaje('Todos los campos son obligatorios.');
+    if (!nombreCompleto || !telefono || !correo || !password || !cooperativaId) {
+      setErrorMensaje('Todos los campos y la cooperativa son obligatorios.');
       return;
     }
 
@@ -40,11 +70,11 @@ export default function Register() {
           telefono,
           correo,
           password,
-          rolId 
+          cooperativaId
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(data.mensaje || 'Error al registrar el usuario');
@@ -55,8 +85,8 @@ export default function Register() {
       alert('Registro exitoso. Tu cajita de ahorro ha sido creada.');
       navigate('/'); // Lo regresamos al login
 
-    } catch (error: any) {
-      setErrorMensaje(error.message);
+    } catch (error) {
+      setErrorMensaje(error instanceof Error ? error.message : 'No se pudo crear la cuenta.');
     } finally {
       setIsLoading(false);
     }
@@ -131,17 +161,17 @@ export default function Register() {
               </label>
 
               <label className="field-card" style={{ marginTop: '12px' }}>
-                <span>Rol en la Cooperativa</span>
+                <span>Cooperativa</span>
                 <select 
-                  value={rolId} 
-                  onChange={(e) => setRolId(e.target.value)}
+                  value={cooperativaId}
+                  onChange={(e) => setCooperativaId(e.target.value)}
                   disabled={isLoading}
                   style={{ border: 'none', background: 'transparent', outline: 'none', font: 'inherit', width: '100%' }}
                 >
-                  <option value="22222222-2222-2222-2222-222222222222">Socio Productor</option>
-                  <option value="33333333-3333-3333-3333-333333333333">Tesorero</option>
-                  <option value="44444444-4444-4444-4444-444444444444">Miembro del Consejo</option>
-                  <option value="11111111-1111-1111-1111-111111111111">Administrador</option>
+                  <option value="">Selecciona una cooperativa</option>
+                  {cooperativas.map((cooperativa) => (
+                    <option key={cooperativa.id} value={cooperativa.id}>{cooperativa.nombre}</option>
+                  ))}
                 </select>
               </label>
 

@@ -12,7 +12,6 @@ interface ModalProps {
 export default function ModalNuevaCaja({ isOpen, onClose, targetUserId }: ModalProps) {
   const [nombre, setNombre] = useState('');
   const [meta, setMontoObjetivo] = useState('');
-  const [fechaCierre, setFechaCierre] = useState('');
 
   if (!isOpen) return null;
 
@@ -52,7 +51,6 @@ export default function ModalNuevaCaja({ isOpen, onClose, targetUserId }: ModalP
       
       setNombre('');
       setMontoObjetivo('');
-      setFechaCierre('');
       onClose(); 
 
     } catch (error: any) {

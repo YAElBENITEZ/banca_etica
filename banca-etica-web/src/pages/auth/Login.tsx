@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../App.css'; 
+
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+  const raw = await response.text();
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { mensaje: raw };
+    }
+  }
+
+  return { mensaje: raw };
+}
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -33,7 +48,7 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(data.mensaje || 'Error al iniciar sesión');
@@ -46,12 +61,7 @@ export default function Login() {
       console.log('Usuario autenticado:', data);
       
       // Navegación original a tu Dashboard
-      // En tu Login.jsx / Login.tsx tras recibir la respuesta de la API:
-      if (data.usuario.rol === 'SuperAdmin') {
-        navigate('/s-admin/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
 
     } catch (error: any) {
       setErrorMensaje(error.message);
@@ -94,6 +104,7 @@ export default function Login() {
           <div className="auth-card">
             <div className="auth-tabs">
               <button className="active" type="button">Iniciar sesión</button>
+              <Link to="/registro" className="ghost-link">Crear cuenta de socio</Link>
             </div>
 
             <form className="auth-fields" onSubmit={handleLoginSubmit}>

@@ -1,5 +1,5 @@
 // 1. Importamos useEffect
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import Sidebar from '../../components/Sidebar';
 import ModalNuevaCaja from '../../components/Admin/ModalNuevaCaja';

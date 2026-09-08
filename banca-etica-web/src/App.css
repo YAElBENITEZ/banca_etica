@@ -29,12 +29,6 @@ input {
   outline: none;
 }
 
-small.comunidad-name {
-  color: black;
-  font-size: large;
-  font-weight: 800;
-}
-
 .landing-shell,
 .app-shell {
   min-height: 100vh;

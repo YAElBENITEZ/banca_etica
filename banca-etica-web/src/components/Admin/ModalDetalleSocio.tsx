@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Interfaz que coincide con la estructura de Usuario que devuelve tu backend en C#
 interface Usuario {
   id: string;

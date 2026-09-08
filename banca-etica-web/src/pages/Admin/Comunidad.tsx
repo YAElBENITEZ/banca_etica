@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import Sidebar from '../../components/Sidebar';
-import ModalNuevoSocio from '../../components/Admin/ModalNuevoSocio';
 import ModalDetalleSocio from '../../components/Admin/ModalDetalleSocio';
 import '../../App.css'; 
 
@@ -18,7 +17,6 @@ interface Usuario {
 }
 
 export default function Comunidad() {
-  const [isModalSocioOpen, setIsModalSocioOpen] = useState(false);
   const [isModalDetalleOpen, setIsModalDetalleOpen] = useState(false);
   const [socioSeleccionado, setSocioSeleccionado] = useState<Usuario | null>(null);
   
@@ -76,11 +74,6 @@ export default function Comunidad() {
             <button className="ghost-link active">Directorio de Socios</button>
             <button className="ghost-link">Mesa Directiva</button>
             <button className="ghost-link">Solicitudes</button>
-          </div>
-          <div className="top-actions">
-            <button className="primary-pill" onClick={() => setIsModalSocioOpen(true)}>
-              + Registrar Socio
-            </button>
           </div>
         </header>
 
@@ -211,15 +204,6 @@ export default function Comunidad() {
 
         </section>
       </main>
-
-      {/* Modal para alta conectada */}
-      <ModalNuevoSocio 
-        isOpen={isModalSocioOpen}
-        onClose={() => setIsModalSocioOpen(false)}
-        onSuccess={() => {
-           fetchUsuarios(); // Recarga la lista automáticamente tras guardar exitosamente
-        }}
-      />
 
       {/* Modal para ver detalle rápido del objeto */}
       <ModalDetalleSocio 

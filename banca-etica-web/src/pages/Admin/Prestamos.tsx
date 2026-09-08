@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import Sidebar from '../../components/Sidebar';
 import ModalNuevoPrestamo from '../../components/Admin/ModalNuevoPrestamo';
@@ -91,10 +91,6 @@ export default function Prestamos() {
                         {/* AQUÍ MOSTRAMOS LA CAJITA CORRESPONDIENTE */}
                         <div style={{ fontSize: '13px', color: '#5f584f', marginBottom: '8px' }}>
                           Fondeado por: <strong>{prestamo.cajitaNombre}</strong>
-                        </div>
-
-                        <div style={{ fontSize: '13px', color: '#5f584f', marginBottom: '8px' }}>
-                          Tipo préstamo: <strong>{prestamo.tipo}</strong>
                         </div>
 
                         <span style={{ 
