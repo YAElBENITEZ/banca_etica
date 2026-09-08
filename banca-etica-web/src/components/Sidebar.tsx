@@ -61,7 +61,7 @@ export default function Sidebar() {
           to="/mis-cajitas" 
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
-          Mis Cajitas
+          Mis aportaciones
         </NavLink>
 
         {userRol === 'Socio' && (

@@ -3,7 +3,6 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import Comunidad from './pages/Admin/Comunidad';
-import MisCajitas from './pages/Cajitas';
 import MisPrestamos from './pages/Prestamos';
 import MiPerfil from './pages/MiPerfil';
 import PrivateRoute from './components/PrivateRoute';
@@ -28,7 +27,7 @@ export default function App() {
         {/* 🔒 RUTAS PROTEGIDAS GENERALES (Cualquier socio autenticado) */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/mis-cajitas" element={<MisCajitas />} />
+          <Route path="/mis-cajitas" element={<MiResumenFinanciero />} />
           <Route path="/mi-historial" element={<MiHistorial />} />
           <Route path="/mi-cierre" element={<MiCierre />} />
           <Route path="/mi-resumen-financiero" element={<MiResumenFinanciero />} />
