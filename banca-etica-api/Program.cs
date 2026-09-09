@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using banca_etica_api.Data;
+using banca_etica_api.Models;
+using BCrypt.Net;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// En desarrollo se registran los errores en consola; evita depender del registro de eventos de Windows.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 // 1. Configuración de la Base de Datos con PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -82,6 +88,30 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Cuenta inicial de desarrollo para iniciar el flujo: Gestor -> Cooperativa -> Socio -> Tesorero.
+// No reemplaza ni modifica una cuenta existente.
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var rolGestor = await context.Roles.SingleOrDefaultAsync(r => r.Nombre == "GESTOR");
+    if (rolGestor is not null && !await context.Usuarios.AnyAsync(u => u.Correo == "gestor@mezcalpay.local"))
+    {
+        context.Usuarios.Add(new Usuario
+        {
+            Id = Guid.NewGuid(),
+            RolId = rolGestor.Id,
+            Nombres = "Gestor",
+            ApellidoPaterno = "Inicial",
+            Correo = "gestor@mezcalpay.local",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Gestor123!"),
+            ConsentimientoArco = true,
+            Estatus = "ACTIVO",
+            FechaRegistro = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+    }
+}
 
 // ------------------- PIPELINE DE PETICIONES HTTP -------------------
 
