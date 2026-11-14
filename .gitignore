@@ -1,0 +1,31 @@
+# Node (Para React y React Native)
+node_modules/
+.env
+
+# Expo (React Native)
+.expo/
+
+# C# / .NET
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+
+# Herramientas y cachés locales de desarrollo
+.tools/
+tmp/
+banca-etica-api/.tools/
+banca-etica-api/.codex-dotnet/
+
+# Documentos de prueba o expedientes locales: nunca se versionan
+banca-etica-docs/*.pdf
+banca-etica-docs/*.png
+banca-etica-docs/*.jpg
+banca-etica-docs/*.jpeg
+
+# Logs y SO
+*.log
+.DS_Store
+vincular.html
+
+backend-prod.tar.gz
+frontend-prod.tar.gz
